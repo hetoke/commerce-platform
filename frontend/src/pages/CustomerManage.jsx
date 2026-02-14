@@ -1,0 +1,116 @@
+import React, { useEffect, useState } from "react";
+import Typewriter from "../components/Typewriter.jsx";
+import { protectedFetch } from "../api/api.js"
+
+const CustomerManage = () => {
+  const [items, setItems] = useState([]);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [loadingId, setLoadingId] = useState(null);
+
+  useEffect(() => {
+    const fetchPurchases = async () => {
+      try {
+        const response = await protectedFetch("/api/items/purchases");
+
+        if (response.status === 401) {
+          window.location.href = "/login";
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch purchases.");
+        }
+
+        const data = await response.json();
+        setItems(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPurchases();
+  }, []);
+
+  const handleCancel = async (id) => {
+    try {
+      setLoadingId(id);
+
+      const response = await protectedFetch(
+        `/api/items/purchases/${id}`,
+        { method: "DELETE" }
+      );
+
+      if (response.status === 401) {
+        window.location.href = "/login";
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error("Failed to cancel purchase.");
+      }
+
+      setItems((prev) => prev.filter((item) => item._id !== id));
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoadingId(null);
+    }
+  };
+
+  return (
+    <main className="mx-auto w-full max-w-6xl px-6 pb-16 pt-10">
+      <h1 className="text-3xl font-semibold text-slate-100">
+        <Typewriter text="Your Account" />
+      </h1>
+      <p className="mt-3 text-slate-400">
+        <Typewriter
+          text="Manage your purchased items below."
+          speed={22}
+          delay={250}
+        />
+      </p>
+
+      {error && (
+        <p className="mt-6 text-sm text-red-400">{error}</p>
+      )}
+
+      {loading ? (
+        <p className="mt-6 text-sm text-slate-400">Loading purchases...</p>
+      ) : items.length === 0 ? (
+        <p className="mt-6 text-sm text-slate-500">
+          You haven't purchased any items yet.
+        </p>
+      ) : (
+        <div className="mt-8 space-y-4">
+          {items.map((item) => (
+            <div
+              key={item._id}
+              className="flex justify-between rounded-xl border border-[#1f2937] bg-[#101621] p-4"
+            >
+              <div>
+                <p className="text-sm font-semibold text-slate-100">
+                  {item.name}
+                </p>
+                <p className="text-xs text-slate-400">
+                  {item.location} • ${item.price}
+                </p>
+              </div>
+              <button
+                onClick={() => handleCancel(item._id)}
+                disabled={loadingId === item._id}
+                className="rounded-full border border-[#2a3442] px-3 py-1 text-xs font-semibold text-slate-400 hover:border-red-500 hover:text-red-400 disabled:opacity-50"
+              >
+                {loadingId === item._id ? "Canceling..." : "Cancel"}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </main>
+  );
+};
+
+export default CustomerManage;
