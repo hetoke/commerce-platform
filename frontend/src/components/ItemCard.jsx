@@ -30,7 +30,7 @@ const ItemCard = ({ item }) => {
         const err = await res.json();
         alert(err.message || "Failed to purchase");
       } else {
-        alert("Added to your account");
+        alert("Adding to cart");
       }
     } catch {
       alert("Network error");

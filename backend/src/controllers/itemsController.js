@@ -134,12 +134,12 @@ export const buyItem = async (req, res) => {
     }
 
     // optional: prevent duplicate purchase
-    const alreadyOwned = customer.items.some(
-      (i) => i.name === item.name
-    );
-    if (alreadyOwned) {
-      return res.status(409).json({ message: "Item already purchased." });
-    }
+    // const alreadyOwned = customer.items.some(
+    //   (i) => i.name === item.name
+    // );
+    // if (alreadyOwned) {
+    //   return res.status(409).json({ message: "Item already purchased." });
+    // }
 
     // copy item into customer
     customer.items.push({
@@ -153,6 +153,7 @@ export const buyItem = async (req, res) => {
     await customer.save();
     return res.status(201).json(customer.items);
   } catch (err) {
+    //console.log("Hetoke was here");
     console.error(err);
     return res.status(500).json({ message: "Failed to buy item." });
   }

@@ -1,6 +1,18 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import User from "../models/User.js";
+import RefreshToken from "../models/RefreshToken.js";
+import crypto from "crypto";
+
+function hashToken(token) {
+  return crypto.createHash("sha256").update(token).digest("hex");
+}
+
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax",
+};
 
 export const login = async (req, res) => {
   const { username, password } = req.body || {};
@@ -31,6 +43,12 @@ export const login = async (req, res) => {
     { expiresIn: "7d" }
   );
 
+  await RefreshToken.create({
+    user: user._id,
+    tokenHash: hashToken(refreshToken),
+    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+  });
+
   res
     .cookie("accessToken", accessToken, {
       httpOnly: true,
@@ -54,17 +72,20 @@ export const login = async (req, res) => {
 };
 
 export const logout = async (req, res) => {
+  const token = req.cookies.refreshToken;
+
+  if (token) {
+    const hashed = hashToken(token);
+
+    await RefreshToken.updateOne(
+      { tokenHash: hashed },
+      { revoked: true }
+    );
+  }
+
   res
-    .clearCookie("accessToken", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-    })
-    .clearCookie("refreshToken", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-    })
+    .clearCookie("accessToken", cookieOptions)
+    .clearCookie("refreshToken", cookieOptions)
     .json({ message: "Logged out successfully." });
 };
 
@@ -100,6 +121,12 @@ export const signup = async (req, res) => {
     { expiresIn: "7d" }
   );
 
+  await RefreshToken.create({
+    user: user._id,
+    tokenHash: hashToken(refreshToken),
+    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+  });
+
   res
     .cookie("accessToken", accessToken, {
       httpOnly: true,
@@ -126,35 +153,63 @@ export const signup = async (req, res) => {
 
 export const refresh = async (req, res) => {
   const token = req.cookies.refreshToken;
-
   if (!token) {
-    return res.status(401).json({ message: "Refresh token missing." });
+    return res.status(401).json({ message: "Missing refresh token." });
   }
 
-  try {
-    const payload = jwt.verify(
-      token,
-      process.env.JWT_REFRESH_SECRET
-    );
+  const hashed = hashToken(token);
 
-    const accessToken = jwt.sign(
-      { id: payload.id },
-      process.env.JWT_ACCESS_SECRET,
-      { expiresIn: "15m" }
-    );
+  const stored = await RefreshToken.findOneAndUpdate(
+    {
+      tokenHash: hashed,
+      revoked: false,
+      expiresAt: { $gt: new Date() }
+    },
+    {
+      $set: { revoked: true }
+    },
+    { new: true }
+  ).populate("user");
 
-    res.cookie("accessToken", accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 15 * 60 * 1000,
+  if (!stored) {
+    // Check if token existed but was already revoked (reuse detection)
+    const reused = await RefreshToken.findOne({ tokenHash: hashed });
+
+    if (reused) {
+      // 🚨 Reuse detected — revoke all sessions
+      await RefreshToken.updateMany(
+        { user: reused.user },
+        { revoked: true }
+      );
+    }
+
+    return res.status(403).json({
+      message: "Invalid or reused refresh token."
     });
-
-    return res.json({ message: "Token refreshed." });
-
-  } catch (err) {
-    return res.status(403).json({ message: "Invalid or expired refresh token." });
   }
+
+  const newRefreshToken = jwt.sign(
+    { id: stored.user._id.toString() },
+    process.env.JWT_REFRESH_SECRET,
+    { expiresIn: "7d" }
+  );
+
+  await RefreshToken.create({
+    user: stored.user._id,
+    tokenHash: hashToken(newRefreshToken),
+    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+  });
+
+  const newAccessToken = jwt.sign(
+    { id: stored.user._id.toString(), role: stored.user.role },
+    process.env.JWT_ACCESS_SECRET,
+    { expiresIn: "15m" }
+  );
+
+  res
+    .cookie("accessToken", newAccessToken, cookieOptions)
+    .cookie("refreshToken", newRefreshToken, cookieOptions)
+    .json({ message: "Token rotated." });
 };
 
 export const verifyMe = async (req, res) => {
