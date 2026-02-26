@@ -8,14 +8,39 @@ const userSchema = new mongoose.Schema(
       unique: true,
     },
 
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+    },
+
     password: {
       type: String,
-      required: true, // hashed
+      required: function () {
+        return this.provider === "local";
+      },
+    },
+
+    provider: {
+      type: String,
+      enum: ["local", "google"],
+      default: "local",
+    },
+
+    googleId: {
+      type: String,
+      sparse: true, // allows null but unique when exists
+      unique: true,
     },
 
     role: {
       type: String,
       default: "customer",
+    },
+
+    avatar: {
+      type: String,
     },
 
     items: [

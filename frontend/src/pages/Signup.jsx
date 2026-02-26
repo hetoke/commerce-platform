@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import { NavLink } from "react-router-dom";
 
 const Signup = ({ onSignup }) => {
+  const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -19,6 +20,7 @@ const Signup = ({ onSignup }) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           username: username.trim(),
+          email: email.trim().toLowerCase(),
           password,
         }),
       });
@@ -62,6 +64,18 @@ const Signup = ({ onSignup }) => {
         </p>
 
         <div className="mt-6 space-y-4">
+          <label className="block">
+            <span className="text-xs font-semibold text-slate-400">
+              Email
+            </span>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              className="mt-2 w-full rounded-lg border border-[#2a3442] bg-[#141a22] px-3 py-2 text-sm text-slate-100 focus:border-[#6f7cff] focus:outline-none"
+            />
+          </label>
           <label className="block">
             <span className="text-xs font-semibold text-slate-400">
               Username
