@@ -1,9 +1,11 @@
 import express from "express";
-import { login, logout, signup, refresh, verifyMe } from "../controllers/authController.js";
+import { login, logout, signup, refresh, verifyMe, googleAuth } from "../controllers/authController.js";
 import { loginLimiter, signupLimiter } from "../middleware/rateLimitter.js";
 import { requireAuth } from "../middleware/auth.js";
 
 const router = express.Router();
+
+router.post("/google", loginLimiter, googleAuth);
 
 router.post("/login", loginLimiter, login);
 

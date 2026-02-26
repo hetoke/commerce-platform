@@ -3,6 +3,9 @@ import bcrypt from "bcryptjs";
 import User from "../models/User.js";
 import RefreshToken from "../models/RefreshToken.js";
 import crypto from "crypto";
+import { OAuth2Client } from "google-auth-library";
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 function hashToken(token) {
   return crypto.createHash("sha256").update(token).digest("hex");
@@ -12,6 +15,92 @@ const cookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
   sameSite: "lax",
+};
+
+
+
+export const googleAuth = async (req, res) => {
+  try {
+    const { credential } = req.body;
+
+    if (!credential) {
+      return res.status(400).json({ message: "Google credential required" });
+    }
+
+    // ✅ Verify token with Google
+    const ticket = await client.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const { email, name, sub } = payload;
+
+    if (!email) {
+      return res.status(400).json({ message: "Google account has no email" });
+    }
+
+    // 🔍 Check if user exists
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      // Create new Google user
+      user = await User.create({
+        username: name.replace(/\s+/g, "").toLowerCase(),
+        email,
+        provider: "google",
+        googleId: sub,
+        role: "customer",
+      });
+    }
+
+    // 🔐 Generate your own tokens
+    const accessToken = jwt.sign(
+      { id: user._id.toString(), role: user.role },
+      process.env.JWT_ACCESS_SECRET,
+      { expiresIn: "15m" }
+    );
+
+    const refreshToken = jwt.sign(
+      { id: user._id.toString() },
+      process.env.JWT_REFRESH_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    await RefreshToken.create({
+      user: user._id,
+      tokenHash: hashToken(refreshToken),
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    });
+
+    return res
+      .cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 15 * 60 * 1000,
+      })
+      .cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      })
+      .status(200)
+      .json({
+        user: {
+          id: user._id.toString(),
+          username: user.username,
+          email: user.email,
+          role: user.role,
+          provider: user.provider,
+        },
+      });
+
+  } catch (err) {
+    console.error("Google auth error:", err);
+    return res.status(401).json({ message: "Invalid Google token" });
+  }
 };
 
 export const login = async (req, res) => {
@@ -30,9 +119,15 @@ export const login = async (req, res) => {
       ]
     });
 
-  if (!user || user.provider !== "local") {
+  if (!user) {
     return res.status(401).json({
       message: "Invalid credentials."
+    });
+  }
+
+  if (user.provider !== "local") {
+    return res.status(400).json({
+      message: "Please login using Google."
     });
   }
 
