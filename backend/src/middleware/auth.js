@@ -15,6 +15,7 @@ export const requireAuth = async (req, res, next) => {
       return res.status(401).json({ message: "User not found" });
     }
 
+    //print(user)
     req.user = user;
     next();
   } catch (err) {

@@ -15,16 +15,27 @@ const cookieOptions = {
 };
 
 export const login = async (req, res) => {
-  const { username, password } = req.body || {};
+  const { identifier, password } = req.body || {};
 
-  if (!username || !password) {
-    return res.status(400).json({ message: "Username and password required." });
+  if (!identifier || !password) {
+    return res.status(400).json({
+      message: "Email/Username and password required."
+    });
   }
 
-  const user = await User.findOne({ username });
-  if (!user) {
-    return res.status(401).json({ message: "Invalid credentials." });
+  const user = await User.findOne({
+      $or: [
+        { email: identifier.toLowerCase() },
+        { username: identifier.toLowerCase() }
+      ]
+    });
+
+  if (!user || user.provider !== "local") {
+    return res.status(401).json({
+      message: "Invalid credentials."
+    });
   }
+
 
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) {
@@ -91,63 +102,91 @@ export const logout = async (req, res) => {
 
 
 export const signup = async (req, res) => {
-  const { username, password } = req.body || {};
+  try {
+    let { username, email, password } = req.body || {};
 
-  if (!username || !password) {
-    return res.status(400).json({ message: "Username and password required." });
-  }
+    if (!username || !email || !password) {
+      return res.status(400).json({
+        message: "Username, email and password are required.",
+      });
+    }
 
-  const existing = await User.findOne({ username });
-  if (existing) {
-    return res.status(409).json({ message: "Username already exists." });
-  }
+    username = username.trim().toLowerCase();
+    email = email.trim().toLowerCase();
 
-  const hashed = await bcrypt.hash(password, 10);
-  const user = await User.create({
-    username,
-    password: hashed,
-    role: "customer",
-  });
+    // 🔍 Check username
+    const existingUsername = await User.findOne({ username });
+    if (existingUsername) {
+      return res.status(409).json({
+        message: "Username already exists.",
+      });
+    }
 
-  const accessToken = jwt.sign(
-    { id: user._id.toString(), role: user.role },
-    process.env.JWT_ACCESS_SECRET,
-    { expiresIn: "15m" }
-  );
+    // 🔍 Check email
+    const existingEmail = await User.findOne({ email });
+    if (existingEmail) {
+      return res.status(409).json({
+        message: "Email already registered.",
+      });
+    }
 
-  const refreshToken = jwt.sign(
-    { id: user._id.toString() },
-    process.env.JWT_REFRESH_SECRET,
-    { expiresIn: "7d" }
-  );
+    const hashed = await bcrypt.hash(password, 10);
 
-  await RefreshToken.create({
-    user: user._id,
-    tokenHash: hashToken(refreshToken),
-    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-  });
-
-  res
-    .cookie("accessToken", accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 15 * 60 * 1000,
-    })
-    .cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    })
-    .status(201)
-    .json({
-      user: {
-        id: user._id.toString(),
-        username: user.username,
-        role: user.role,
-      },
+    const user = await User.create({
+      username,
+      email,
+      password: hashed,
+      provider: "local",
+      role: "customer",
     });
+
+    // 🔐 Generate tokens
+    const accessToken = jwt.sign(
+      { id: user._id.toString(), role: user.role },
+      process.env.JWT_ACCESS_SECRET,
+      { expiresIn: "15m" }
+    );
+
+    const refreshToken = jwt.sign(
+      { id: user._id.toString() },
+      process.env.JWT_REFRESH_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    await RefreshToken.create({
+      user: user._id,
+      tokenHash: hashToken(refreshToken),
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    });
+
+    return res
+      .cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 15 * 60 * 1000,
+      })
+      .cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      })
+      .status(201)
+      .json({
+        user: {
+          id: user._id.toString(),
+          username: user.username,
+          email: user.email,
+          role: user.role,
+          provider: user.provider,
+        },
+      });
+
+  } catch (err) {
+    console.error("Signup error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
 };
 
 
@@ -217,6 +256,7 @@ export const verifyMe = async (req, res) => {
   res.json({
     id: req.user.id,
     username: req.user.username,
-    role: req.user.role
+    role: req.user.role,
+    email: req.user.email
   });
 }

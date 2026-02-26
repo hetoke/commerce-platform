@@ -8,16 +8,17 @@ import User from "../models/User.js";
  */
 export const updateUsername = async (req, res) => {
   try {
-    const { newUsername } = req.body;
+    let { newUsername } = req.body;
     const userId = req.user.id;
 
     if (!newUsername) {
       return res.status(400).json({ message: "New username required" });
     }
 
-    // Check if username exists (case-insensitive)
+    newUsername = newUsername.trim().toLowerCase();
+
     const existingUser = await User.findOne({
-      username: { $regex: new RegExp(`^${newUsername}$`, "i") },
+      username: newUsername,
       _id: { $ne: userId },
     });
 
@@ -36,10 +37,12 @@ export const updateUsername = async (req, res) => {
       user: {
         id: updatedUser._id.toString(),
         username: updatedUser.username,
+        email: updatedUser.email,
         role: updatedUser.role,
       },
     });
-  } catch (error) {
+
+  } catch {
     return res.status(500).json({ message: "Server error." });
   }
 };
@@ -52,25 +55,36 @@ export const updateUsername = async (req, res) => {
 export const changePassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
-    const userId = req.user.id;
 
-    if (!currentPassword || !newPassword) {
-      return res.status(400).json({ message: "All fields required" });
-    }
-
-    const user = await User.findById(userId);
+    // 🔥 Fetch fresh user WITH password
+    const user = await User.findById(req.user._id);
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
+    if (user.provider !== "local") {
+      return res.status(400).json({
+        message: "Password change not available for OAuth accounts",
+      });
+    }
+
+    if (!user.password) {
+      return res.status(400).json({
+        message: "No password set for this account",
+      });
+    }
+
     const isValid = await bcrypt.compare(currentPassword, user.password);
 
     if (!isValid) {
-      return res.status(400).json({ message: "Current password incorrect" });
+      return res.status(400).json({
+        message: "Current password incorrect",
+      });
     }
 
     const isSame = await bcrypt.compare(newPassword, user.password);
+
     if (isSame) {
       return res.status(400).json({
         message: "New password must be different",
@@ -82,11 +96,11 @@ export const changePassword = async (req, res) => {
 
     return res.json({ message: "Password changed successfully" });
 
-  } catch {
+  } catch (err) {
+    console.error("Change password error:", err);
     return res.status(500).json({ message: "Server error" });
   }
 };
-
 
 /**
  * Get user profile

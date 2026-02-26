@@ -20,9 +20,6 @@ router.put(
   "/update-username",
   requireAuth,
   [
-    body("userId")
-      .notEmpty()
-      .withMessage("User ID is required"),
     body("newUsername")
       .trim()
       .isLength({ min: 3, max: 30 })
@@ -43,9 +40,6 @@ router.put(
   "/change-password",
   requireAuth,
   [
-    body("userId")
-      .notEmpty()
-      .withMessage("User ID is required"),
     body("currentPassword")
       .notEmpty()
       .withMessage("Current password is required"),

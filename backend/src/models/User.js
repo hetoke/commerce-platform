@@ -6,6 +6,8 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
+      trim: true,
+      lowercase: true,
     },
 
     email: {
@@ -13,6 +15,7 @@ const userSchema = new mongoose.Schema(
       required: true,
       unique: true,
       lowercase: true,
+      trim: true,
     },
 
     password: {
@@ -25,13 +28,14 @@ const userSchema = new mongoose.Schema(
     provider: {
       type: String,
       enum: ["local", "google"],
+      required: true,
       default: "local",
     },
 
     googleId: {
       type: String,
-      sparse: true, // allows null but unique when exists
       unique: true,
+      sparse: true,
     },
 
     role: {
@@ -39,9 +43,7 @@ const userSchema = new mongoose.Schema(
       default: "customer",
     },
 
-    avatar: {
-      type: String,
-    },
+    avatar: String,
 
     items: [
       {
@@ -59,5 +61,7 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+
 
 export default mongoose.model("User", userSchema);

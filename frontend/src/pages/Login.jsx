@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
 import { NavLink } from "react-router-dom";
+import { GoogleLogin } from "@react-oauth/google";
 
 const Login = ({ onLogin }) => {
   const [username, setUsername] = useState("");
@@ -18,7 +19,7 @@ const Login = ({ onLogin }) => {
         credentials: "include", // 🔥 IMPORTANT
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          username: username.trim(),
+          identifier: username.trim(),
           password,
         }),
       });
@@ -102,6 +103,60 @@ const Login = ({ onLogin }) => {
         >
           {isLoading ? "Signing in..." : "Sign in"}
         </button>
+
+        <div className="mt-4">
+          <div className="relative flex items-center">
+            <div className="flex-grow border-t border-[#2a3442]" />
+            <span className="mx-3 text-xs text-slate-400">OR</span>
+            <div className="flex-grow border-t border-[#2a3442]" />
+          </div>
+
+          <div className="mt-4 flex justify-center">
+            <GoogleLogin
+              onSuccess={async (credentialResponse) => {
+                try {
+                  setIsLoading(true);
+                  setError("");
+
+                  const res = await fetch("/api/auth/google", {
+                    method: "POST",
+                    credentials: "include",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      credential: credentialResponse.credential,
+                    }),
+                  });
+
+                  if (!res.ok) {
+                    const data = await res.json().catch(() => ({}));
+                    throw new Error(data.message || "Google login failed.");
+                  }
+
+                  const meRes = await fetch("/api/auth/me", {
+                    credentials: "include",
+                  });
+
+                  if (!meRes.ok) throw new Error("Failed to fetch user.");
+
+                  const user = await meRes.json();
+
+                  onLogin({
+                    username: user.username,
+                    role: user.role,
+                  });
+
+                } catch (err) {
+                  setError(err.message);
+                } finally {
+                  setIsLoading(false);
+                }
+              }}
+              onError={() => setError("Google login failed.")}
+              theme="filled_black"
+              size="large"
+            />
+          </div>
+        </div>
 
         <p className="mt-4 text-sm text-slate-400">
           New here?{" "}

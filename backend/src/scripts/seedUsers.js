@@ -83,27 +83,36 @@ const adminItems = [
 const seed = async () => {
   await mongoose.connect(uri, { dbName: "myDatabase" });
 
-  const ops = await Promise.all(
-    users.map(async (user) => {
-      const password = await bcrypt.hash(user.password, 10);
-      const items = user.role === "admin" ? adminItems : undefined;
-      const update = {
-        ...user,
-        password,
-        ...(items ? { items } : {}),
-      };
-      return {
-        updateOne: {
-          filter: { username: user.username },
-          update: { $set: update },
-          upsert: true,
-        },
-      };
-    })
-  );
+  const createdUsers = [];
 
-  const result = await User.bulkWrite(ops);
-  console.log("Seed complete:", result.result || result);
+  for (const user of users) {
+    const hashedPassword = await bcrypt.hash(user.password, 10);
+
+    const userData = {
+      username: user.username.toLowerCase(),
+      email: `${user.username.toLowerCase()}@example.com`,
+      password: hashedPassword,
+      provider: "local",
+      role: user.role,
+    };
+
+    // Attach items only for admin
+    if (user.role === "admin") {
+      userData.items = adminItems.map((item) => ({
+        name: item.name,
+        price: item.price,
+        location: item.location,
+        description: item.description,
+        path: item.path,
+        // no need to manually add createdAt
+      }));
+    }
+
+    const newUser = await User.create(userData);
+    createdUsers.push(newUser.username);
+  }
+
+  console.log("Seed complete. Created users:", createdUsers);
 
   await mongoose.disconnect();
 };
