@@ -6,6 +6,8 @@ const Account = ({ username: initialUsername }) => {
   const [username, setUsername] = useState(initialUsername || "");
   const [newUsername, setNewUsername] = useState("");
 
+  const [email, setEmail] = useState("");
+
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
 
@@ -18,6 +20,7 @@ const Account = ({ username: initialUsername }) => {
       if (res.ok) {
         const data = await res.json();
         setUsername(data?.username);
+        setEmail(data?.email);
       }
     };
     loadUser();
@@ -93,6 +96,11 @@ const Account = ({ username: initialUsername }) => {
         <section className="rounded-2xl border border-[#1f2937] bg-[#0f141b] p-5">
           <h2 className="text-lg font-semibold text-slate-100">Profile</h2>
 
+          <div className="mt-4">
+            <p className="text-xs font-semibold text-slate-400">Email</p>
+            <p className="mt-1 text-sm text-slate-100">{email || "—"}</p>
+          </div>
+          
           <div className="mt-4">
             <p className="text-xs font-semibold text-slate-400">Username</p>
             <p className="mt-1 text-sm text-slate-100">{username || "—"}</p>
