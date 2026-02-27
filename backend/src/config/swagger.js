@@ -1,9 +1,9 @@
 import swaggerJsdoc from "swagger-jsdoc";
 import path from "path";
 import { fileURLToPath } from "url";
-import accountSchemas from "./accountSchemas.js";
-import authSchemas from "./authSchemas.js";
-import itemSchemas from "./itemSchemas.js";
+import accountSchemas from "./schemas/accountSchemas.js";
+import authSchemas from "./schemas/authSchemas.js";
+import itemSchemas from "./schemas/itemSchemas.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

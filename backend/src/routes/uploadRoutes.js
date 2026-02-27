@@ -1,40 +1,10 @@
 import express from "express";
-import fs from "fs";
-import multer from "multer";
-import path from "path";
-import { requireAdmin, requireAuth } from "../middleware/auth.js";
+import { requireAuth, requireAdmin } from "../middleware/auth.js";
+import { upload } from "../config/multer.js";
+import { uploadImage } from "../controllers/uploadController.js";
 
 const router = express.Router();
 
-const uploadsRoot = path.resolve(process.cwd(), "uploads");
-const productsDir = path.join(uploadsRoot, "products");
-fs.mkdirSync(productsDir, { recursive: true });
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, productsDir);
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    cb(null, `${unique}${ext}`);
-  },
-});
-
-const fileFilter = (req, file, cb) => {
-  const allowed = [".jpg", ".jpeg", ".png", ".webp"];
-  const ext = path.extname(file.originalname).toLowerCase();
-  if (!allowed.includes(ext)) {
-    return cb(new Error("Only jpg, jpeg, png, and webp are allowed."));
-  }
-  return cb(null, true);
-};
-
-const upload = multer({
-  storage,
-  fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 },
-});
 
 /**
  * @swagger
@@ -89,11 +59,5 @@ router.post(
   }
 );
 
-router.use((err, req, res, next) => {
-  if (err?.message) {
-    return res.status(400).json({ message: err.message });
-  }
-  return next(err);
-});
 
 export default router;

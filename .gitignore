@@ -24,6 +24,7 @@ frontend/*.sln
 frontend/*.sw?
 
 backend/node_modules
+backend/uploads/
 backend/.env
 frontend/.env
 
