@@ -13,6 +13,7 @@ const CustomerManage = () => {
       try {
         const response = await protectedFetch("/api/items/purchases");
 
+
         if (response.status === 401) {
           window.location.href = "/login";
           return;
@@ -52,7 +53,7 @@ const CustomerManage = () => {
         throw new Error("Failed to cancel purchase.");
       }
 
-      setItems((prev) => prev.filter((item) => item._id !== id));
+      setItems((prev) => prev.filter((item) => item.id !== id));
     } catch (err) {
       setError(err.message);
     } finally {
@@ -87,7 +88,7 @@ const CustomerManage = () => {
         <div className="mt-8 space-y-4">
           {items.map((item) => (
             <div
-              key={item._id}
+              key={item.id}
               className="flex justify-between rounded-xl border border-[#1f2937] bg-[#101621] p-4"
             >
               <div>
@@ -99,11 +100,11 @@ const CustomerManage = () => {
                 </p>
               </div>
               <button
-                onClick={() => handleCancel(item._id)}
-                disabled={loadingId === item._id}
+                onClick={() => handleCancel(item.id)}
+                disabled={loadingId === item.id}
                 className="rounded-full border border-[#2a3442] px-3 py-1 text-xs font-semibold text-slate-400 hover:border-red-500 hover:text-red-400 disabled:opacity-50"
               >
-                {loadingId === item._id ? "Canceling..." : "Cancel"}
+                {loadingId === item.id ? "Canceling..." : "Cancel"}
               </button>
             </div>
           ))}

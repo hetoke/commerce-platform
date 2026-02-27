@@ -1,6 +1,4 @@
-// controllers/accountController.js
-import bcrypt from "bcryptjs";
-import User from "../models/User.js";
+import { updateUsernameService, changePasswordService, getProfileService } from "../services/accountService.js";
 
 /**
  * Update username
@@ -8,42 +6,22 @@ import User from "../models/User.js";
  */
 export const updateUsername = async (req, res) => {
   try {
-    let { newUsername } = req.body;
-    const userId = req.user.id;
-
-    if (!newUsername) {
-      return res.status(400).json({ message: "New username required" });
-    }
-
-    newUsername = newUsername.trim().toLowerCase();
-
-    const existingUser = await User.findOne({
-      username: newUsername,
-      _id: { $ne: userId },
-    });
-
-    if (existingUser) {
-      return res.status(400).json({ message: "Username already taken" });
-    }
-
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      { username: newUsername },
-      { new: true, runValidators: true }
+    const user = await updateUsernameService(
+      req.user.id,
+      req.body.newUsername
     );
 
     return res.json({
       message: "Username updated successfully",
       user: {
-        id: updatedUser._id.toString(),
-        username: updatedUser.username,
-        email: updatedUser.email,
-        role: updatedUser.role,
+        id: user._id.toString(),
+        username: user.username,
+        email: user.email,
+        role: user.role,
       },
     });
-
-  } catch {
-    return res.status(500).json({ message: "Server error." });
+  } catch (err) {
+    return res.status(400).json({ message: err.message });
   }
 };
 
@@ -54,51 +32,15 @@ export const updateUsername = async (req, res) => {
  */
 export const changePassword = async (req, res) => {
   try {
-    const { currentPassword, newPassword } = req.body;
-
-    // 🔥 Fetch fresh user WITH password
-    const user = await User.findById(req.user._id);
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    if (user.provider !== "local") {
-      return res.status(400).json({
-        message: "Password change not available for OAuth accounts",
-      });
-    }
-
-    if (!user.password) {
-      return res.status(400).json({
-        message: "No password set for this account",
-      });
-    }
-
-    const isValid = await bcrypt.compare(currentPassword, user.password);
-
-    if (!isValid) {
-      return res.status(400).json({
-        message: "Current password incorrect",
-      });
-    }
-
-    const isSame = await bcrypt.compare(newPassword, user.password);
-
-    if (isSame) {
-      return res.status(400).json({
-        message: "New password must be different",
-      });
-    }
-
-    user.password = await bcrypt.hash(newPassword, 10);
-    await user.save();
+    await changePasswordService(
+      req.user.id,
+      req.body.currentPassword,
+      req.body.newPassword
+    );
 
     return res.json({ message: "Password changed successfully" });
-
   } catch (err) {
-    console.error("Change password error:", err);
-    return res.status(500).json({ message: "Server error" });
+    return res.status(400).json({ message: err.message });
   }
 };
 
@@ -108,13 +50,7 @@ export const changePassword = async (req, res) => {
  */
 export const getProfile = async (req, res) => {
   try {
-    const userId = req.user.id || req.user._id;
-
-    const user = await User.findById(userId).select("-password");
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    const user = await getProfileService(req.user.id);
 
     return res.json({
       user: {
@@ -125,8 +61,7 @@ export const getProfile = async (req, res) => {
         updatedAt: user.updatedAt,
       },
     });
-  } catch (error) {
-    console.error("Error fetching profile:", error);
-    return res.status(500).json({ message: "Server error. Please try again later." });
+  } catch (err) {
+    return res.status(404).json({ message: err.message });
   }
 };

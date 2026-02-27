@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "seed:users": "node src/scripts/seedUsers.js",
+    "seed": "node src/scripts/seedData.js",
+    "clean_tokens": "node src/scripts/cleanRefreshTokens.js",
     "start": "nodemon src/server.js"
   },
   "keywords": [],

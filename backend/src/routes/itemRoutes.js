@@ -2,17 +2,17 @@ import express from "express";
 import {
   createItem,
   deleteItem,
-  listAdminItems,
+  listItems,
   listCustomerItems,
   updateItem,
   buyItem,
-  cancelItem
+  cancelPurchase
 } from "../controllers/itemsController.js";
 import { requireAdmin, requireAuth } from "../middleware/auth.js";
 
 const router = express.Router();
 
-router.get("/", listAdminItems);
+router.get("/", listItems);
 
 router.get("/purchases", requireAuth, listCustomerItems);
 
@@ -24,6 +24,6 @@ router.put("/:itemId", requireAuth, requireAdmin, updateItem);
 
 router.delete("/:itemId", requireAuth, requireAdmin, deleteItem);
 
-router.delete("/purchases/:itemId", requireAuth, cancelItem);
+router.delete("/purchases/:itemId", requireAuth, cancelPurchase);
 
 export default router;

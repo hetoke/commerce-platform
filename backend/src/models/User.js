@@ -42,22 +42,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "customer",
     },
-
-    avatar: String,
-
-    items: [
-      {
-        name: String,
-        price: Number,
-        location: String,
-        description: String,
-        path: String,
-        createdAt: {
-          type: Date,
-          default: Date.now,
-        },
-      },
-    ],
   },
   { timestamps: true }
 );

@@ -3,36 +3,21 @@ import path from "path";
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import User from "../models/User.js";
+import Item from "../models/Item.js";
 
 dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 
 const uri = process.env.MONGODB_URI;
 if (!uri) {
-  console.error("MONGODB_URI is not set. Set it in your shell and retry.");
+  console.error("MONGODB_URI is not set.");
   process.exit(1);
 }
 
 const users = [
-  {
-    username: "admin",
-    password: "admin123",
-    role: "admin",
-  },
-  {
-    username: "alice",
-    password: "customer123",
-    role: "customer",
-  },
-  {
-    username: "bob",
-    password: "customer123",
-    role: "customer",
-  },
-  {
-    username: "clara",
-    password: "customer123",
-    role: "customer",
-  },
+  { username: "admin", password: "admin123", role: "admin" },
+  { username: "alice", password: "customer123", role: "customer" },
+  { username: "bob", password: "customer123", role: "customer" },
+  { username: "clara", password: "customer123", role: "customer" },
 ];
 
 const adminItems = [
@@ -83,41 +68,51 @@ const adminItems = [
 const seed = async () => {
   await mongoose.connect(uri, { dbName: "myDatabase" });
 
-  const createdUsers = [];
+  console.log("Connected to:", mongoose.connection.name);
+
+  // 🔥 Clean database first (optional but recommended for mock data)
+  await User.deleteMany({});
+  await Item.deleteMany({});
+
+  console.log("Old data cleared.");
+
+  // Create users
+  let adminUser = null;
 
   for (const user of users) {
     const hashedPassword = await bcrypt.hash(user.password, 10);
 
-    const userData = {
+    const newUser = await User.create({
       username: user.username.toLowerCase(),
       email: `${user.username.toLowerCase()}@example.com`,
       password: hashedPassword,
       provider: "local",
       role: user.role,
-    };
+    });
 
-    // Attach items only for admin
     if (user.role === "admin") {
-      userData.items = adminItems.map((item) => ({
-        name: item.name,
-        price: item.price,
-        location: item.location,
-        description: item.description,
-        path: item.path,
-        // no need to manually add createdAt
-      }));
+      adminUser = newUser;
     }
-
-    const newUser = await User.create(userData);
-    createdUsers.push(newUser.username);
   }
 
-  console.log("Seed complete. Created users:", createdUsers);
+  console.log("Users created.");
 
+  // Create items for admin
+  if (adminUser) {
+    const itemsToInsert = adminItems.map((item) => ({
+      ...item,
+      createdBy: adminUser._id,
+    }));
+
+    await Item.insertMany(itemsToInsert);
+    console.log("Admin items created.");
+  }
+
+  console.log("Seeding complete.");
   await mongoose.disconnect();
 };
 
 seed().catch((error) => {
-  console.error("Seeding failed:", error.message);
+  console.error("Seeding failed:", error);
   process.exit(1);
 });

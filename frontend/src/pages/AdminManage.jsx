@@ -62,16 +62,31 @@ const AdminManage = ({ items, setItems }) => {
         const data = await response.json().catch(() => ({}));
         throw new Error(data.message || "Failed to save item.");
       }
+
+      
       const data = await response.json();
-      const normalized = (data || []).map((item) => ({
-        id: item._id || item.id,
-        name: item.name,
-        price: item.price,
-        location: item.location,
-        description: item.description,
-        path: item.path,
-      }));
-      setItems(normalized);
+
+      const normalizedItem = {
+        id: data._id || data.id,
+        name: data.name,
+        price: data.price,
+        location: data.location,
+        description: data.description,
+        path: data.path,
+      };
+
+      if (editingId) {
+        // UPDATE existing item
+        setItems(prev =>
+          prev.map(item =>
+            item.id === normalizedItem.id ? normalizedItem : item
+          )
+        );
+      } else {
+        // ADD new item
+        setItems(prev => [...prev, normalizedItem]);
+      }
+
       resetForm();
     };
 
@@ -100,16 +115,10 @@ const AdminManage = ({ items, setItems }) => {
         const data = await response.json().catch(() => ({}));
         throw new Error(data.message || "Failed to delete item.");
       }
-      const data = await response.json();
-      const normalized = (data || []).map((item) => ({
-        id: item._id || item.id,
-        name: item.name,
-        price: item.price,
-        location: item.location,
-        description: item.description,
-        path: item.path,
-      }));
-      setItems(normalized);
+      await response.json(); // if backend sends { success: true }
+
+      setItems(prev => prev.filter(item => item.id !== id));
+
       if (editingId === id) {
         resetForm();
       }
