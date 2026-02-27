@@ -9,6 +9,8 @@ import authRoutes from "./routes/authRoutes.js";
 import itemsRoutes from "./routes/itemRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
 import accountRoutes from "./routes/accountRoutes.js";
+import swaggerUi from "swagger-ui-express";
+import swaggerSpec from "./config/swagger.js";
 
 
 dotenv.config({ path: path.resolve(process.cwd(), ".env") });
@@ -22,6 +24,8 @@ app.use(cookieParser());
 app.use(cors());
 app.use(morgan("dev"));
 app.use("/uploads", express.static("uploads"));
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.get("/", (req, res) => {
   res.send("API running");

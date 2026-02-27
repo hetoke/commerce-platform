@@ -36,6 +36,44 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 },
 });
 
+/**
+ * @swagger
+ * /api/uploads/image:
+ *   post:
+ *     summary: Upload image (Admin only)
+ *     tags: [Uploads]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - image
+ *             properties:
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       201:
+ *         description: Image uploaded successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 path:
+ *                   type: string
+ *                   example: products/abc123.jpg
+ *       400:
+ *         description: No file uploaded
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden (Admin only)
+ */
 router.post(
   "/image",
   requireAuth,

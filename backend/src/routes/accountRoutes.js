@@ -12,9 +12,26 @@ import {
 const router = express.Router();
 
 /**
- * @route   PUT /api/account/update-username
- * @desc    Update username
- * @access  Private
+ * @swagger
+ * /api/account/update-username:
+ *   put:
+ *     summary: Update username
+ *     tags: [Account]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UpdateUsernameRequest'
+ *     responses:
+ *       200:
+ *         description: Username updated successfully
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
  */
 router.put(
   "/update-username",
@@ -32,9 +49,26 @@ router.put(
 );
 
 /**
- * @route   PUT /api/account/change-password
- * @desc    Change password
- * @access  Private
+ * @swagger
+ * /api/account/change-password:
+ *   put:
+ *     summary: Change user password
+ *     tags: [Account]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ChangePasswordRequest'
+ *     responses:
+ *       200:
+ *         description: Password changed successfully
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
  */
 router.put(
   "/change-password",
@@ -54,9 +88,22 @@ router.put(
 );
 
 /**
- * @route   GET /api/account/profile
- * @desc    Get user profile
- * @access  Private
+ * @swagger
+ * /api/account/profile:
+ *   get:
+ *     summary: Get authenticated user profile
+ *     tags: [Account]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User profile retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UserProfile'
+ *       401:
+ *         description: Unauthorized
  */
 router.get("/profile", requireAuth, getProfile);
 
