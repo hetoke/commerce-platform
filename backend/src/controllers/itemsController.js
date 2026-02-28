@@ -23,7 +23,7 @@ export const listCustomerItems = async (req, res) => {
       price: p.item.price,
       location: p.item.location,
       description: p.item.description,
-      path: p.item.path,
+      path: p.item.imagePath,
       purchasedAt: p.createdAt,
     }));
 
