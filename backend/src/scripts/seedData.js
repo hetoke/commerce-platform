@@ -97,16 +97,10 @@ const seed = async () => {
 
   console.log("Users created.");
 
-  // Create items for admin
-  if (adminUser) {
-    const itemsToInsert = adminItems.map((item) => ({
-      ...item,
-      createdBy: adminUser._id,
-    }));
+  
 
-    await Item.insertMany(itemsToInsert);
-    console.log("Admin items created.");
-  }
+  await Item.insertMany(adminItems);
+  console.log("Admin items created.");
 
   console.log("Seeding complete.");
   await mongoose.disconnect();

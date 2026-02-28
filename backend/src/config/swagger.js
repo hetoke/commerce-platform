@@ -18,7 +18,7 @@ const options = {
   definition: {
     openapi: "3.0.0",
     info: {
-      title: "Marketplace API",
+      title: "Hetoke Shop API",
       version: "1.0.0",
       description: "API documentation for your marketplace app",
     },
