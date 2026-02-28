@@ -123,21 +123,12 @@ const seed = async () => {
   for (const reviewData of sampleReviews) {
     const review = await Review.create(reviewData);
 
-    const ratingFieldMap = {
-      1: "ratingStats.one",
-      2: "ratingStats.two",
-      3: "ratingStats.three",
-      4: "ratingStats.four",
-      5: "ratingStats.five",
-    };
-
     await Item.updateOne(
       { _id: review.item },
       {
         $inc: {
           totalRating: review.rating,
           reviewCount: 1,
-          [ratingFieldMap[review.rating]]: 1,
         },
       }
     );

@@ -80,6 +80,9 @@ function App() {
           location: item.location,
           description: item.description,
           path: item.imagePath,
+          averageRating: item.averageRating,
+          reviewCount: item.reviewCount,
+          sellCount: item.sellCount,
         }));
 
         setItems(normalized);

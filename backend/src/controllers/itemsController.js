@@ -9,10 +9,11 @@ export const listItems = async (req, res, next) => {
   try {
     const items = await Item.find({})
       .select(
-        "name price location description averageRating reviewCount sellCount imagePath createdAt"
+        "name price location description totalRating averageRating reviewCount sellCount imagePath createdAt"
       )
-      .sort({ createdAt: -1 })
-      .lean();
+      .sort({ createdAt: -1 });
+
+    //console.log(items)
 
     return res.json(items);
   } catch (err) {
@@ -28,7 +29,7 @@ export const getItemDetails = async (req, res, next) => {
       return res.status(400).json({ message: "Invalid item ID" });
     }
 
-    const item = await Item.findById(itemId).lean();
+    const item = await Item.findById(itemId);
 
     if (!item) {
       return res.status(404).json({ message: "Item not found" });

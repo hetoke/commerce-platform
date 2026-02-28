@@ -9,6 +9,8 @@ import {
   buyItem,
   cancelPurchase
 } from "../controllers/itemsController.js";
+
+import { getItemReviews } from "../controllers/reviewController.js";
 import { requireAdmin, requireAuth } from "../middleware/auth.js";
 
 const router = express.Router();
@@ -33,6 +35,8 @@ router.get("/", listItems);
 
 
 router.get("/:itemId", getItemDetails);
+
+router.get("/:itemId/reviews", getItemReviews);
 
 /**
  * @swagger

@@ -4,14 +4,22 @@ import { useParams } from "react-router-dom";
 const ItemDetail = () => {
   const { itemId } = useParams();
   const [item, setItem] = useState(null);
+  const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchItem = async () => {
+    const fetchData = async () => {
       try {
-        const res = await fetch(`/api/items/${itemId}`);
-        const data = await res.json();
-        setItem(data);
+        const [itemRes, reviewRes] = await Promise.all([
+          fetch(`/api/items/${itemId}`),
+          fetch(`/api/items/${itemId}/reviews`)
+        ]);
+
+        const itemData = await itemRes.json();
+        const reviewData = await reviewRes.json();
+
+        setItem(itemData);
+        setReviews(reviewData);
       } catch {
         alert("Failed to load item");
       } finally {
@@ -19,7 +27,7 @@ const ItemDetail = () => {
       }
     };
 
-    fetchItem();
+    fetchData();
   }, [itemId]);
 
   if (loading) return <div className="p-6 text-slate-400">Loading...</div>;
@@ -83,6 +91,38 @@ const ItemDetail = () => {
         <p className="text-slate-400 leading-relaxed whitespace-pre-line">
           {item.detailedDescription}
         </p>
+      </div>
+      <div className="mt-12 border-t border-[#1f2937] pt-8">
+        <h2 className="text-xl font-semibold mb-6">
+          Reviews ({reviews.length})
+        </h2>
+
+        {reviews.length === 0 && (
+          <p className="text-slate-500">No reviews yet.</p>
+        )}
+
+        <div className="space-y-6">
+          {reviews.map((review) => (
+            <div
+              key={review._id}
+              className="border-b border-[#1f2937] pb-4"
+            >
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-semibold">
+                  {review.user?.username || "Anonymous"}
+                </span>
+
+                <span className="text-yellow-400">
+                  {"★".repeat(review.rating)}
+                </span>
+              </div>
+
+              <p className="text-slate-400 mt-2">
+                {review.comment}
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
