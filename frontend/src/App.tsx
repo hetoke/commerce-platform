@@ -10,6 +10,7 @@ import Signup from "./pages/Signup.jsx";
 import Account from "./pages/Account.jsx";
 import AdminManage from "./pages/AdminManage.jsx";
 import CustomerManage from "./pages/CustomerManage.jsx";
+import ItemDetail from "./pages/ItemDetail.jsx";
 import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
 
 function App() {
@@ -78,7 +79,7 @@ function App() {
           price: item.price,
           location: item.location,
           description: item.description,
-          path: item.path,
+          path: item.imagePath,
         }));
 
         setItems(normalized);
@@ -139,6 +140,8 @@ function App() {
         <Route path="/about" element={<About />} />
         <Route path="/login" element={<Login onLogin={handleLogin} />} />
         <Route path="/signup" element={<Signup onSignup={handleLogin} />} />
+        <Route path="/items/:itemId" element={<ItemDetail />} />
+
 
         <Route
           path="/account"

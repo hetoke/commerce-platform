@@ -1,36 +1,39 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
+import { Link } from "react-router-dom";
 
 const ItemCard = ({ item }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isBuying, setIsBuying] = useState(false);
-
-  //console.log("FULL ITEM:", item);
 
   const imageUrl = item.path
     ? `/uploads/${item.path}`
     : item.image ||
       "https://images.unsplash.com/photo-1503602642458-232111445657?w=800&q=80";
 
-  const handleBuy = async () => {
+  const handleBuy = async (e) => {
+    e.preventDefault();      // 🔥 prevent navigation
+    e.stopPropagation();     // 🔥 stop bubbling
+
     if (isBuying) return;
 
     try {
       setIsBuying(true);
       const token = localStorage.getItem("token");
+
       const res = await fetch(`/api/items/${item.id}/buy`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
-        }
+        },
       });
 
       if (!res.ok) {
         const err = await res.json();
         alert(err.message || "Failed to purchase");
       } else {
-        alert("Adding to cart");
+        alert("Added to cart");
       }
     } catch {
       alert("Network error");
@@ -40,7 +43,10 @@ const ItemCard = ({ item }) => {
   };
 
   return (
-    <div className="group overflow-hidden rounded-2xl border border-[#1f2937] bg-[#0f141b]">
+    <Link
+      to={`/items/${item.id}`}
+      className="group block overflow-hidden rounded-2xl border border-[#1f2937] bg-[#0f141b] transition hover:border-[#2a3442] cursor-pointer"
+    >
       <div className="relative w-full overflow-hidden bg-[#101621] aspect-[4/3]">
         <img
           src={imageUrl}
@@ -56,20 +62,35 @@ const ItemCard = ({ item }) => {
         />
       </div>
 
-      <div className="space-y-2 p-4">
-        <h3 className="text-base font-semibold text-slate-100">
-          {item.name}
-        </h3>
+      <div className="space-y-3 p-4">
+        <div>
+          <h3 className="text-base font-semibold text-slate-100">
+            {item.name}
+          </h3>
+          <p className="text-xs uppercase tracking-wide text-slate-500">
+            {item.location}
+          </p>
+        </div>
 
-        <p className="text-xs uppercase tracking-wide text-slate-500">
-          {item.location}
-        </p>
-
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-slate-400 line-clamp-2">
           {item.description}
         </p>
 
-        <div className="flex items-center justify-between pt-1">
+        <div className="flex items-center justify-between text-xs text-slate-400">
+          <div className="flex items-center gap-1">
+            <span className="text-yellow-400">★</span>
+            <span>
+              {item.averageRating?.toFixed(1) || "0.0"}
+            </span>
+            <span>({item.reviewCount || 0})</span>
+          </div>
+
+          <div>
+            {item.sellCount || 0} sold
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between pt-2">
           <span className="text-lg font-semibold text-slate-100">
             {typeof item.price === "number"
               ? `$${item.price}`
@@ -90,20 +111,8 @@ const ItemCard = ({ item }) => {
           </button>
         </div>
       </div>
-    </div>
+    </Link>
   );
 };
 
 export default ItemCard;
-
-ItemCard.propTypes = {
-  item: PropTypes.shape({
-    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-    name: PropTypes.string.isRequired,
-    price: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-    location: PropTypes.string.isRequired,
-    description: PropTypes.string.isRequired,
-    image: PropTypes.string,
-    path: PropTypes.string,
-  }).isRequired,
-};

@@ -3,6 +3,7 @@ import {
   createItem,
   deleteItem,
   listItems,
+  getItemDetails,
   listCustomerItems,
   updateItem,
   buyItem,
@@ -29,6 +30,9 @@ const router = express.Router();
  *                 $ref: '#/components/schemas/Item'
  */
 router.get("/", listItems);
+
+
+router.get("/:itemId", getItemDetails);
 
 /**
  * @swagger

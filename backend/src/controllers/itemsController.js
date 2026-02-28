@@ -3,10 +3,41 @@ import path from "path";
 import User from "../models/User.js";
 import Item from "../models/Item.js";
 import Purchase from "../models/Purchase.js";
+import mongoose from "mongoose";
 
-export const listItems = async (req, res) => {
-  const items = await Item.find({}).lean();
-  return res.json(items);
+export const listItems = async (req, res, next) => {
+  try {
+    const items = await Item.find({})
+      .select(
+        "name price location description averageRating reviewCount sellCount imagePath createdAt"
+      )
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return res.json(items);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getItemDetails = async (req, res, next) => {
+  try {
+    const { itemId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(itemId)) {
+      return res.status(400).json({ message: "Invalid item ID" });
+    }
+
+    const item = await Item.findById(itemId).lean();
+
+    if (!item) {
+      return res.status(404).json({ message: "Item not found" });
+    }
+
+    return res.json(item);
+  } catch (err) {
+    next(err);
+  }
 };
 
 export const listCustomerItems = async (req, res) => {
