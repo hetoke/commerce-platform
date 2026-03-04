@@ -1,5 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+
+const markdownTest = `
+# React Markdown Example
+
+- Some text
+- Some other text
+
+## Subtitle
+
+### Additional info
+
+This is a [link](https://github.com/remarkjs/react-markdown)
+`
 
 const ItemDetail = () => {
   const { itemId } = useParams();
@@ -27,15 +42,20 @@ const ItemDetail = () => {
       }
     };
 
+
     fetchData();
   }, [itemId]);
 
+
+
   if (loading) return <div className="p-6 text-slate-400">Loading...</div>;
   if (!item) return <div className="p-6 text-slate-400">Item not found</div>;
+  //console.log("RAW:", item.detailedDescription?.replace(/\\n/g, "\n"));
 
   const imageUrl = item.imagePath
     ? `/uploads/${item.imagePath}`
     : "https://images.unsplash.com/photo-1503602642458-232111445657?w=1200&q=80";
+
 
   return (
     <div className="max-w-6xl mx-auto p-6 text-slate-200">
@@ -88,9 +108,11 @@ const ItemDetail = () => {
         <h2 className="text-xl font-semibold mb-4">
           Product Details
         </h2>
-        <p className="text-slate-400 leading-relaxed whitespace-pre-line">
-          {item.detailedDescription}
-        </p>
+        <div className="prose prose-invert max-w-none">
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            {item.detailedDescription?.replace(/\\n/g, "\n")}
+          </ReactMarkdown>
+        </div>
       </div>
       <div className="mt-12 border-t border-[#1f2937] pt-8">
         <h2 className="text-xl font-semibold mb-6">

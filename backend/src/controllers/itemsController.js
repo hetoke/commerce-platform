@@ -67,7 +67,7 @@ export const createItem = async (req, res) => {
     return res.status(403).json({ message: "Forbidden" });
   }
 
-  const { name, price, location, description, path } = req.body;
+  const { name, price, location, description, detailedDescription, path } = req.body;
 
   if (!name || price === undefined || !location || !description) {
     return res.status(400).json({ message: "Missing item fields." });
@@ -78,6 +78,7 @@ export const createItem = async (req, res) => {
     price,
     location,
     description,
+    detailedDescription,
     path,
   });
 

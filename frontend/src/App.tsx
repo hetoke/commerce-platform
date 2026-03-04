@@ -1,4 +1,3 @@
-import "./App.css";
 import "./index.css";
 import React, { useEffect, useState } from "react";
 import Navbar from "./components/navbar.jsx";

@@ -10,6 +10,7 @@ const AdminManage = ({ items, setItems }) => {
     price: "",
     location: "",
     description: "",
+    detailedDescription: "",
     path: "",
   });
   const [isUploading, setIsUploading] = useState(false);
@@ -26,6 +27,7 @@ const AdminManage = ({ items, setItems }) => {
       price: "",
       location: "",
       description: "",
+      detailedDescription: "",
       path: "",
     });
     setEditingId(null);
@@ -35,7 +37,10 @@ const AdminManage = ({ items, setItems }) => {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    if (!form.name || !form.price || !form.location || !form.description) {
+    if (!form.name || 
+        !form.price || 
+        !form.location || 
+        !form.description) {
       setError("Please enter enough fields");
       return;
     }
@@ -48,6 +53,7 @@ const AdminManage = ({ items, setItems }) => {
       price: Number(form.price),
       location: form.location,
       description: form.description,
+      detailedDescription: form.detailedDescription,
       path: form.path || undefined,
     };
 
@@ -72,6 +78,7 @@ const AdminManage = ({ items, setItems }) => {
         price: data.price,
         location: data.location,
         description: data.description,
+        detailedDescription: data.detailedDescription, 
         path: data.path,
       };
 
@@ -93,17 +100,20 @@ const AdminManage = ({ items, setItems }) => {
     request().catch((err) => setError(err.message));
   };
 
-  const handleEdit = (item) => {
-    setEditingId(item.id);
+  const handleEdit = async (item) => {
+    const res = await protectedFetch(`/api/items/${item.id}`);
+    const fullItem = await res.json();
+
+    setEditingId(fullItem._id);
+
     setForm({
-      name: item.name,
-      price: item.price,
-      location: item.location,
-      description: item.description,
-      path: item.path || "",
+      name: fullItem.name,
+      price: fullItem.price,
+      location: fullItem.location,
+      description: fullItem.description,
+      detailedDescription: fullItem.detailedDescription || "",
+      path: fullItem.path || "",
     });
-    setError("");
-    setIsUploading(false);
   };
 
   const handleDelete = (id) => {
@@ -328,6 +338,19 @@ const AdminManage = ({ items, setItems }) => {
           </div>
         </div>
       </div>
+      <label className="block">
+        <span className="text-xs font-semibold text-slate-400">
+          Detailed Description
+        </span>
+        <textarea
+          name="detailedDescription"
+          value={form.detailedDescription}
+          onChange={handleChange}
+          className="mt-2 min-h-[220px] w-full rounded-lg border border-[#2a3442] bg-[#141a22] px-3 py-3 text-sm text-slate-100 focus:border-[#6f7cff] focus:outline-none"
+          placeholder="Full product details, specs, condition, shipping info, etc..."
+        />
+      </label>
+
     </main>
   );
 };
@@ -343,6 +366,7 @@ AdminManage.propTypes = {
         .isRequired,
       location: PropTypes.string.isRequired,
       description: PropTypes.string.isRequired,
+      detailedDescription: PropTypes.string,
       path: PropTypes.string,
     })
   ).isRequired,
