@@ -3,18 +3,6 @@ import { useParams } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-const markdownTest = `
-# React Markdown Example
-
-- Some text
-- Some other text
-
-## Subtitle
-
-### Additional info
-
-This is a [link](https://github.com/remarkjs/react-markdown)
-`
 
 const ItemDetail = () => {
   const { itemId } = useParams();

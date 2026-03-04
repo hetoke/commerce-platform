@@ -84,6 +84,8 @@ function App() {
           sellCount: item.sellCount,
         }));
 
+        console.log(normalized)
+
         setItems(normalized);
         setItemsError("");
       } catch (error: any) {

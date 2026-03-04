@@ -54,8 +54,12 @@ const AdminManage = ({ items, setItems }) => {
       location: form.location,
       description: form.description,
       detailedDescription: form.detailedDescription,
-      path: form.path || undefined,
     };
+
+    if (form.path) {
+      payload.path = form.path;
+    }
+
 
     const request = async () => {
       const url = editingId ? `/api/items/${editingId}` : "/api/items";
@@ -83,16 +87,18 @@ const AdminManage = ({ items, setItems }) => {
       };
 
       if (editingId) {
-        // UPDATE existing item
+        const freshRes = await protectedFetch(`/api/items/${editingId}`);
+        const freshItem = await freshRes.json();
+
         setItems(prev =>
           prev.map(item =>
-            item.id === normalizedItem.id ? normalizedItem : item
+            item.id === (freshItem._id || freshItem.id)
+              ? { ...item, ...freshItem, id: freshItem._id || freshItem.id }
+              : item
           )
         );
-      } else {
-        // ADD new item
-        setItems(prev => [...prev, normalizedItem]);
       }
+
 
       resetForm();
     };

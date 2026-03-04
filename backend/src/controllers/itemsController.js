@@ -9,7 +9,7 @@ export const listItems = async (req, res, next) => {
   try {
     const items = await Item.find({})
       .select(
-        "name price location description totalRating averageRating reviewCount sellCount imagePath createdAt"
+        "name price imagePath location description totalRating averageRating reviewCount sellCount imagePath createdAt"
       )
       .sort({ createdAt: -1 });
 
