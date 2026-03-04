@@ -3,25 +3,19 @@ import { useParams } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import LoadingScreen from "../components/LoadingScreen.jsx";
+import { useAuth } from "../context/AuthContext";
 
 
 const ItemDetail = () => {
   const { itemId } = useParams();
+  const { user, authLoading } = useAuth();
   const [item, setItem] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
-
-  useEffect(() => {
-    fetch("/api/auth/me", { credentials: "include" })
-      .then((res) => res.json())
-      .then((data) => setUser(data.user))
-      .catch(() => setUser(null));
-  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -51,9 +45,53 @@ const ItemDetail = () => {
 
 
 
-  if (loading) return <LoadingScreen />;
+  if (loading || authLoading) return <LoadingScreen />;
   if (!item) return <div className="p-6 text-slate-400">Item not found</div>;
-  //console.log("RAW:", item.detailedDescription?.replace(/\\n/g, "\n"));
+  
+  const handleSubmitReview = async (e) => {
+    e.preventDefault();
+
+    if (!rating) {
+      setSubmitError("Please select a rating.");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      setSubmitError(null);
+
+      const res = await fetch(`/api/items/${itemId}/reviews`, {
+        method: "POST",
+        credentials: "include", // 🔥 important for auth cookie
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          rating,
+          comment,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || "Failed to post review.");
+      }
+
+      const newReview = await res.json();
+
+      // ✅ Instantly update UI (no reload)
+      setReviews((prev) => [newReview, ...prev]);
+
+      // reset form
+      setRating(0);
+      setComment("");
+
+    } catch (err) {
+      setSubmitError(err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const imageUrl = item.imagePath
     ? `/uploads/${item.imagePath}`
