@@ -1,9 +1,16 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
 import { NavLink } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
+import { useAuth } from "../context/AuthContext.jsx";
 
-const Login = ({ onLogin }) => {
+
+
+const Login = () => {
+
+  const { setUser } = useAuth();
+  const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -29,21 +36,40 @@ const Login = ({ onLogin }) => {
         throw new Error(data.message || "Login failed.");
       }
 
-      // 🔥 Now fetch authenticated user info
-      const meRes = await fetch("/api/auth/me", {
+      const data = await response.json();
+      setUser(data.user);
+      navigate("/");
+
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      setIsLoading(true);
+      setError("");
+
+      const res = await fetch("/api/auth/google", {
+        method: "POST",
         credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          credential: credentialResponse.credential,
+        }),
       });
 
-      if (!meRes.ok) {
-        throw new Error("Failed to fetch user.");
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || "Google login failed.");
       }
 
-      const user = await meRes.json();
-
-      onLogin({
-        username: user.username,
-        role: user.role,
-      });
+      const data = await res.json();
+      //console.log(data.user)
+      setUser(data.user);
+      navigate("/");
 
     } catch (err) {
       setError(err.message);
@@ -113,44 +139,7 @@ const Login = ({ onLogin }) => {
 
           <div className="mt-4 flex justify-center">
             <GoogleLogin
-              onSuccess={async (credentialResponse) => {
-                try {
-                  setIsLoading(true);
-                  setError("");
-
-                  const res = await fetch("/api/auth/google", {
-                    method: "POST",
-                    credentials: "include",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      credential: credentialResponse.credential,
-                    }),
-                  });
-
-                  if (!res.ok) {
-                    const data = await res.json().catch(() => ({}));
-                    throw new Error(data.message || "Google login failed.");
-                  }
-
-                  const meRes = await fetch("/api/auth/me", {
-                    credentials: "include",
-                  });
-
-                  if (!meRes.ok) throw new Error("Failed to fetch user.");
-
-                  const user = await meRes.json();
-
-                  onLogin({
-                    username: user.username,
-                    role: user.role,
-                  });
-
-                } catch (err) {
-                  setError(err.message);
-                } finally {
-                  setIsLoading(false);
-                }
-              }}
+              onSuccess={handleGoogleSuccess}
               onError={() => setError("Google login failed.")}
               theme="filled_black"
               size="large"
@@ -174,6 +163,4 @@ const Login = ({ onLogin }) => {
 
 export default Login;
 
-Login.propTypes = {
-  onLogin: PropTypes.func.isRequired,
-};
+

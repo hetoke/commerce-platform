@@ -11,50 +11,14 @@ import AdminManage from "./pages/AdminManage.jsx";
 import CustomerManage from "./pages/CustomerManage.jsx";
 import ItemDetail from "./pages/ItemDetail.jsx";
 import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
+import { useAuth } from "./context/AuthContext";
 
 function App() {
   const navigate = useNavigate();
 
-  // -------------------------
-  // AUTH STATE (cookie-based)
-  // -------------------------
-
-  const [user, setUser] = useState<null | {
-    username: string;
-    role: "admin" | "customer";
-  }>(null);
-
-  const [authLoading, setAuthLoading] = useState(true);
-
+  const { user, authLoading, setUser } = useAuth();
   const isLoggedIn = !!user;
 
-  // -------------------------
-  // CHECK AUTH ON APP LOAD
-  // -------------------------
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const res = await fetch("/api/auth/me", {
-          credentials: "include",
-        });
-
-        if (!res.ok) throw new Error();
-
-        const data = await res.json();
-        setUser({
-          username: data.username,
-          role: data.role,
-        });
-      } catch {
-        setUser(null);
-      } finally {
-        setAuthLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, []);
 
   // -------------------------
   // ITEMS STATE
@@ -84,7 +48,7 @@ function App() {
           sellCount: item.sellCount,
         }));
 
-        console.log(normalized)
+        //console.log(normalized)
 
         setItems(normalized);
         setItemsError("");
@@ -98,14 +62,6 @@ function App() {
     loadItems();
   }, []);
 
-  // -------------------------
-  // AUTH HANDLERS
-  // -------------------------
-
-  const handleLogin = (userData) => {
-    setUser(userData);
-    navigate("/");
-  };
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", {
@@ -117,7 +73,7 @@ function App() {
     navigate("/");
   };
 
-  if (authLoading || isLoadingItems) {
+  if (authLoading) {
     return <LoadingScreen />;
   }
 
@@ -142,8 +98,8 @@ function App() {
         />
 
         <Route path="/about" element={<About />} />
-        <Route path="/login" element={<Login onLogin={handleLogin} />} />
-        <Route path="/signup" element={<Signup onSignup={handleLogin} />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
         <Route path="/items/:itemId" element={<ItemDetail />} />
 
 
@@ -151,7 +107,7 @@ function App() {
           path="/account"
           element={
             isLoggedIn ? (
-              <Account username={user.username} />
+              <Account />
             ) : (
               <Navigate to="/login" replace />
             )

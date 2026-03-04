@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { protectedFetch } from "../api/api.js";
+import { useAuth } from "../context/AuthContext";
 
-const Account = ({ username: initialUsername }) => {
-  const [username, setUsername] = useState(initialUsername || "");
+const Account = () => {
+  const { user, setUser } = useAuth();
+  //console.log(user)
+  const [username, setUsername] = useState(user?.username || "");
+  const [email, setEmail] = useState(user?.email || "");
   const [newUsername, setNewUsername] = useState("");
-
-  const [email, setEmail] = useState("");
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -15,16 +17,11 @@ const Account = ({ username: initialUsername }) => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-   const loadUser = async () => {
-      const res = await protectedFetch("/api/auth/me");
-      if (res.ok) {
-        const data = await res.json();
-        setUsername(data?.username);
-        setEmail(data?.email);
-      }
-    };
-    loadUser();
-  }, []);
+    if (user) {
+      setUsername(user.username);
+      setEmail(user.email);
+    }
+  }, [user]);
 
   const updateUsername = async () => {
     if (!newUsername.trim()) {
@@ -43,9 +40,11 @@ const Account = ({ username: initialUsername }) => {
 
       if (!res.ok) throw new Error("Failed to update username");
 
+      setUser({ ...user, username: newUsername });
       setUsername(newUsername);
       setNewUsername("");
       setMessage("Username updated successfully.");
+
     } catch (err) {
       setMessage(err.message);
     } finally {
@@ -175,10 +174,6 @@ const Account = ({ username: initialUsername }) => {
       </div>
     </main>
   );
-};
-
-Account.propTypes = {
-  username: PropTypes.string,
 };
 
 export default Account;

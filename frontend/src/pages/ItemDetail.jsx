@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import LoadingScreen from "../components/LoadingScreen.jsx";
 
 
 const ItemDetail = () => {
@@ -9,6 +10,18 @@ const ItemDetail = () => {
   const [item, setItem] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
+
+  useEffect(() => {
+    fetch("/api/auth/me", { credentials: "include" })
+      .then((res) => res.json())
+      .then((data) => setUser(data.user))
+      .catch(() => setUser(null));
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -36,7 +49,9 @@ const ItemDetail = () => {
 
 
 
-  if (loading) return <div className="p-6 text-slate-400">Loading...</div>;
+
+
+  if (loading) return <LoadingScreen />;
   if (!item) return <div className="p-6 text-slate-400">Item not found</div>;
   //console.log("RAW:", item.detailedDescription?.replace(/\\n/g, "\n"));
 
@@ -47,10 +62,10 @@ const ItemDetail = () => {
 
   return (
     <div className="max-w-6xl mx-auto p-6 text-slate-200">
-      <div className="grid md:grid-cols-2 gap-10">
+      <div className="flex flex-col md:flex-row gap-8 items-start">
         
         {/* Image */}
-        <div className="rounded-2xl overflow-hidden border border-[#1f2937]">
+        <div className="rounded-2xl overflow-hidden border border-[#1f2937] w-72 h-72">
           <img
             src={imageUrl}
             alt={item.name}
@@ -101,6 +116,79 @@ const ItemDetail = () => {
             {item.detailedDescription?.replace(/\\n/g, "\n")}
           </ReactMarkdown>
         </div>
+      </div>
+
+      {/* ---------- NEW: Add Review Form ---------- */}
+      <div className="mt-12 border-t border-[#1f2937] pt-8">
+        <h2 className="text-xl font-semibold mb-6">
+          Write a Review
+        </h2>
+
+        {/* If the user is NOT logged in → show a prompt */}
+        {!user ? (
+          <p className="text-slate-500">
+            <a
+              href="/login"
+              className="text-[#6f7cff] hover:underline"
+            >
+              Log in
+            </a>{" "}
+            to leave a comment.
+          </p>
+        ) : (
+          <form onSubmit={handleSubmitReview} className="space-y-4 max-w-xl">
+            {/* ★‑rating selector */}
+            <div className="flex items-center gap-1">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  onClick={() => setRating(star)}
+                  className={`
+                    text-2xl
+                    ${rating >= star ? "text-yellow-400" : "text-slate-500"}
+                    hover:text-yellow-400
+                  `}
+                  aria-label={`${star} star${star > 1 ? "s" : ""}`}
+                >
+                  ★
+                </button>
+              ))}
+            </div>
+
+            {/* Comment textarea */}
+            <textarea
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="Write your experience…"
+              rows={4}
+              className="
+                w-full rounded-md border border-[#2a3442] bg-[#141a22] 
+                px-3 py-2 text-sm text-slate-100 
+                focus:border-[#6f7cff] focus:outline-none
+              "
+              required
+            />
+
+            {/* Submit button + error / loading feedback */}
+            <div className="flex items-center gap-4">
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="
+                  rounded-full bg-[#6f7cff] px-4 py-2 text-sm font-semibold text-black
+                  hover:opacity-90 disabled:opacity-50
+                "
+              >
+                {isSubmitting ? "Posting…" : "Post Review"}
+              </button>
+
+              {submitError && (
+                <p className="text-sm text-red-400">{submitError}</p>
+              )}
+            </div>
+          </form>
+        )}
       </div>
       <div className="mt-12 border-t border-[#1f2937] pt-8">
         <h2 className="text-xl font-semibold mb-6">

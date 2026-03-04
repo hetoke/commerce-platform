@@ -17,6 +17,50 @@ const router = express.Router();
 
 /**
  * @swagger
+ * /api/items/purchases:
+ *   get:
+ *     summary: Get current user's purchases
+ *     tags: [Items]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of purchased items
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Purchase'
+ *       401:
+ *         description: Unauthorized
+ */
+router.get("/purchases", requireAuth, listCustomerItems);
+
+/**
+ * @swagger
+ * /api/items/purchases/{itemId}:
+ *   delete:
+ *     summary: Cancel a purchase
+ *     tags: [Items]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: itemId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Purchase canceled
+ *       404:
+ *         description: Purchase not found
+ */
+router.delete("/purchases/:itemId", requireAuth, cancelPurchase);
+
+/**
+ * @swagger
  * /api/items:
  *   get:
  *     summary: Get all items
@@ -38,27 +82,7 @@ router.get("/:itemId", getItemDetails);
 
 router.get("/:itemId/reviews", getItemReviews);
 
-/**
- * @swagger
- * /api/items/purchases:
- *   get:
- *     summary: Get current user's purchases
- *     tags: [Items]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: List of purchased items
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Purchase'
- *       401:
- *         description: Unauthorized
- */
-router.get("/purchases", requireAuth, listCustomerItems);
+
 
 /**
  * @swagger
@@ -156,26 +180,6 @@ router.put("/:itemId", requireAuth, requireAdmin, updateItem);
  */
 router.delete("/:itemId", requireAuth, requireAdmin, deleteItem);
 
-/**
- * @swagger
- * /api/items/purchases/{itemId}:
- *   delete:
- *     summary: Cancel a purchase
- *     tags: [Items]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: itemId
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Purchase canceled
- *       404:
- *         description: Purchase not found
- */
-router.delete("/purchases/:itemId", requireAuth, cancelPurchase);
+
 
 export default router;

@@ -12,6 +12,7 @@ const CustomerManage = () => {
     const fetchPurchases = async () => {
       try {
         const response = await protectedFetch("/api/items/purchases");
+        //console.log(response)
 
 
         if (response.status === 401) {

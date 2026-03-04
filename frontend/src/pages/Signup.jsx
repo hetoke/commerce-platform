@@ -1,8 +1,12 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
 import { NavLink } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
-const Signup = ({ onSignup }) => {
+const Signup = () => {
+  const { setUser } = useAuth();
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -33,17 +37,8 @@ const Signup = ({ onSignup }) => {
       // Option A: backend returns user directly
       const data = await response.json();
 
-      onSignup({
-        username: data.user.username,
-        role: data.user.role,
-      });
-
-      // -----
-      // Option B (if backend doesn't return user):
-      // const meRes = await fetch("/api/auth/me", { credentials: "include" });
-      // const user = await meRes.json();
-      // onSignup({ username: user.username, role: user.role });
-      // -----
+      setUser(data.user);
+      navigate("/");
 
     } catch (err) {
       setError(err.message);
@@ -127,10 +122,6 @@ const Signup = ({ onSignup }) => {
       </div>
     </main>
   );
-};
-
-Signup.propTypes = {
-  onSignup: PropTypes.func.isRequired,
 };
 
 export default Signup;

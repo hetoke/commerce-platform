@@ -42,6 +42,7 @@ export const getItemDetails = async (req, res, next) => {
 };
 
 export const listCustomerItems = async (req, res) => {
+  console.log(req.user.id)
   const purchases = await Purchase.find({ user: req.user.id })
     .populate("item")
     .lean();
