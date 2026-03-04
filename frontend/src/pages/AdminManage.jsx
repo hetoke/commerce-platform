@@ -35,76 +35,101 @@ const AdminManage = ({ items, setItems }) => {
     setIsUploading(false);
   };
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    if (!form.name || 
-        !form.price || 
-        !form.location || 
-        !form.description) {
-      setError("Please enter enough fields");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    // -------------------- validation --------------------
+    if (!form.name || !form.price || !form.location || !form.description) {
+      setError("Please fill in all required fields");
       return;
     }
     if (Number.isNaN(Number(form.price))) {
       setError("Price must be a number.");
       return;
     }
+
+    // -------------------- build payload --------------------
     const payload = {
       name: form.name,
       price: Number(form.price),
       location: form.location,
       description: form.description,
       detailedDescription: form.detailedDescription,
+      ...(form.path && { path: form.path }), // only send if we have a path
     };
 
-    if (form.path) {
-      payload.path = form.path;
-    }
-
-
-    const request = async () => {
+    try {
+      // -------------------- request --------------------
       const url = editingId ? `/api/items/${editingId}` : "/api/items";
       const method = editingId ? "PUT" : "POST";
-      const response = await protectedFetch(url, {
+
+      const res = await protectedFetch(url, {
         method,
         body: JSON.stringify(payload),
       });
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.message || "Failed to save item.");
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || "Failed to save item");
       }
 
-      
-      const data = await response.json();
+      // -------------------- server response --------------------
+      const saved = await res.json(); // may NOT contain `path`
 
-      const normalizedItem = {
-        id: data._id || data.id,
-        name: data.name,
-        price: data.price,
-        location: data.location,
-        description: data.description,
-        detailedDescription: data.detailedDescription, 
-        path: data.path,
-      };
+      // Normalise the identifier (MongoDB uses `_id`, others may use `id`)
+      const serverId = saved._id ?? saved.id;
 
-      if (editingId) {
-        const freshRes = await protectedFetch(`/api/items/${editingId}`);
-        const freshItem = await freshRes.json();
+      // -------------------- merge with the existing item --------------------
+      // We need to keep the old image URL if the server didn’t return it.
+      setItems(prev =>
+        prev.map(item => {
+          // If we are adding a brand‑new item (`editingId` is falsy) the
+          // item will never be found in `prev`. In that case we fall back
+          // to the `else` branch after the map.
+          if (item.id === serverId) {
+            return {
+              // Start with what we already have (keeps `path` etc.)
+              ...item,
+              // Overwrite everything that the server sent back
+              ...saved,
+              // Ensure we still have a valid `id` field
+              id: serverId,
+              // If the server omitted `path`, keep the old one
+              path: saved.path ?? item.path,
+            };
+          }
+          return item;
+        })
+      );
 
-        setItems(prev =>
-          prev.map(item =>
-            item.id === (freshItem._id || freshItem.id)
-              ? { ...item, ...freshItem, id: freshItem._id || freshItem.id }
-              : item
-          )
-        );
+      // -------------------- handle “add new” case --------------------
+      // When we just created a new product there is no existing entry in `prev`.
+      // In that situation `setItems` above didn’t add anything, so we do it now.
+      if (!editingId) {
+        setItems(prev => [
+          ...prev,
+          {
+            id: serverId,
+            name: saved.name,
+            price: saved.price,
+            location: saved.location,
+            description: saved.description,
+            detailedDescription: saved.detailedDescription,
+            // The server may have sent a path; otherwise fall back to what we had in the form
+            path: saved.path ?? form.path,
+          },
+        ]);
       }
 
-
+      // -------------------- clean up UI --------------------
       resetForm();
-    };
-
-    request().catch((err) => setError(err.message));
+    } catch (err) {
+      setError(err.message ?? "Something went wrong");
+    }
   };
+
+
 
   const handleEdit = async (item) => {
     const res = await protectedFetch(`/api/items/${item.id}`);
