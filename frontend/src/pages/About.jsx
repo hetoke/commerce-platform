@@ -9,8 +9,8 @@ const About = () => {
       </h1>
       <p className="mt-3 text-slate-400">
         <Typewriter
-          text="A web e-commerce app made by Huynh Nhat Huy."
-          speed={22}
+          text="A user-friendly e-commerce platform built by Huynh Nhat Huy, designed to make shopping, reviewing, and purchasing products effortless and enjoyable. Perfectly tailored for small businesses and content creators."
+          speed={10}
           delay={250}
         />
       </p>

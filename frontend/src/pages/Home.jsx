@@ -1,12 +1,21 @@
-import React from "react";
+import React, { useState } from "react";
 import PropTypes from "prop-types";
 import ItemCard from "../components/ItemCard.jsx";
 import Typewriter from "../components/Typewriter.jsx";
+import Toast from "../components/Toast.jsx";
 
 const Home = ({ items, error }) => {
   //console.log(items)
+  const [toast, setToast] = useState(null);
   return (
     <main className="mx-auto w-full max-w-6xl px-6 pb-16 pt-10">
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}  
       <div className="mb-8">
         <h1 className="text-3xl font-semibold text-slate-100">
           <Typewriter text="Featured items" />
@@ -29,7 +38,10 @@ const Home = ({ items, error }) => {
               className="fade-up"
               style={{ animationDelay: `${index * 80}ms` }}
             >
-              <ItemCard item={item} />
+              <ItemCard 
+                item={item} 
+                onToast={setToast}
+              />
             </div>
           ))}
         </div>

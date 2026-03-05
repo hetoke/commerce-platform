@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
+import { protectedFetch } from "../api/api.js";
 
-const ItemCard = ({ item }) => {
-  console.log(item)
+const ItemCard = ({ item, onToast }) => {
+  const [toast, setToast] = useState(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isBuying, setIsBuying] = useState(false);
 
@@ -13,31 +14,27 @@ const ItemCard = ({ item }) => {
       "https://images.unsplash.com/photo-1503602642458-232111445657?w=800&q=80";
 
   const handleBuy = async (e) => {
-    e.preventDefault();      // 🔥 prevent navigation
-    e.stopPropagation();     // 🔥 stop bubbling
+    e.preventDefault();
+    e.stopPropagation();
 
     if (isBuying) return;
 
     try {
       setIsBuying(true);
-      const token = localStorage.getItem("token");
 
-      const res = await fetch(`/api/items/${item.id}/buy`, {
+      const res = await protectedFetch(`/api/items/${item.id}/buy`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
       });
+      const data = await res.json();
 
       if (!res.ok) {
-        const err = await res.json();
-        alert(err.message || "Failed to purchase");
+        onToast?.({ message: data.message || "Failed to purchase", type: "error" });
       } else {
-        alert("Added to cart");
+        onToast?.({ message: "Added to cart", type: "success" });
+        // optionally update sellCount if parent passed a setter
       }
     } catch {
-      alert("Network error");
+      onToast?.({ message: "Network error", type: "error" });
     } finally {
       setIsBuying(false);
     }

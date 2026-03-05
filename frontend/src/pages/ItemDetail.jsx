@@ -3,7 +3,10 @@ import { useParams } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import LoadingScreen from "../components/LoadingScreen.jsx";
+import Typewriter from "../components/Typewriter.jsx";
+import Toast from "../components/Toast.jsx"
 import { useAuth } from "../context/AuthContext";
+import { protectedFetch } from "../api/api.js"
 
 
 const ItemDetail = () => {
@@ -16,6 +19,13 @@ const ItemDetail = () => {
   const [comment, setComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
+  const [toast, setToast] = useState(null);
+
+  useEffect(() => {
+    if (!loading) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [loading]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -48,6 +58,28 @@ const ItemDetail = () => {
   if (loading || authLoading) return <LoadingScreen />;
   if (!item) return <div className="p-6 text-slate-400">Item not found</div>;
 
+  
+
+
+  const buyHandler = async (e) => {
+    e.preventDefault();
+    if (!user) return setToast({ message: "Please log in to buy this item.", type: "error" });
+
+    try {
+      setIsSubmitting(true);
+      const res = await protectedFetch(`/api/items/${itemId}/buy`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Purchase failed.");
+
+      setItem((prev) => ({ ...prev, sellCount: (prev.sellCount || 0) + 1 }));
+      setToast({ message: "Purchase successful!", type: "success" });
+    } catch (err) {
+      setToast({ message: err.message, type: "error" });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleSubmitReview = async (e) => {
     e.preventDefault();
 
@@ -60,12 +92,8 @@ const ItemDetail = () => {
       setIsSubmitting(true);
       setSubmitError(null);
 
-      const res = await fetch(`/api/items/${itemId}/reviews`, {
+      const res = await protectedFetch(`/api/items/${itemId}/reviews`, {
         method: "POST",
-        credentials: "include", // 🔥 important for auth cookie
-        headers: {
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({
           rating,
           comment,
@@ -99,9 +127,16 @@ const ItemDetail = () => {
     ? `/uploads/${item.imagePath}`
     : "https://images.unsplash.com/photo-1503602642458-232111445657?w=1200&q=80";
 
-  //console.log(item)
   return (
+    
     <div className="max-w-6xl mx-auto p-6 text-slate-200">
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
       <div className="flex flex-col md:flex-row gap-8 items-start">
         
         {/* Image */}
@@ -115,7 +150,10 @@ const ItemDetail = () => {
 
         {/* Info */}
         <div className="space-y-5">
-          <h1 className="text-3xl font-bold">{item.name}</h1>
+
+          <h1 className="text-3xl font-bold">
+            <Typewriter text={item.name} />
+          </h1>
 
           <div className="flex items-center gap-3 text-sm text-slate-400">
             <span className="text-yellow-400">★</span>
@@ -128,14 +166,16 @@ const ItemDetail = () => {
           </div>
 
           <div className="text-2xl font-semibold">
-            ${item.price}
+            <Typewriter text={"$" + item.price} />
+            
           </div>
 
           <div className="text-sm uppercase tracking-wide text-slate-500">
             {item.location}
           </div>
 
-          <button className="mt-4 px-6 py-2 rounded-full bg-[#6f7cff] text-black font-semibold hover:opacity-90 transition">
+          <button className="mt-4 px-6 py-2 rounded-full bg-[#6f7cff] text-black font-semibold hover:opacity-90 transition"
+            onClick={buyHandler}>
             Buy Now
           </button>
 
