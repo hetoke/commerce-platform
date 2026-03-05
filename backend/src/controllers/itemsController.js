@@ -87,11 +87,9 @@ export const createItem = async (req, res) => {
 };
 
 export const updateItem = async (req, res) => {
-  if (req.user.role !== "admin") {
-    return res.status(403).json({ message: "Forbidden" });
-  }
-
   const { itemId } = req.params;
+
+  console.log(req.body)
 
   const item = await Item.findByIdAndUpdate(
     itemId,

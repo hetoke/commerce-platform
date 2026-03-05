@@ -47,11 +47,11 @@ const ItemDetail = () => {
 
   if (loading || authLoading) return <LoadingScreen />;
   if (!item) return <div className="p-6 text-slate-400">Item not found</div>;
-  
+
   const handleSubmitReview = async (e) => {
     e.preventDefault();
 
-    if (!rating) {
+    if (rating < 1 || rating > 5) {
       setSubmitError("Please select a rating.");
       return;
     }
@@ -79,8 +79,10 @@ const ItemDetail = () => {
 
       const newReview = await res.json();
 
-      // ✅ Instantly update UI (no reload)
-      setReviews((prev) => [newReview, ...prev]);
+      setReviews((prev) => {
+        const filtered = prev.filter((r) => r._id !== newReview._id);
+        return [newReview, ...filtered];
+      });
 
       // reset form
       setRating(0);
@@ -97,7 +99,7 @@ const ItemDetail = () => {
     ? `/uploads/${item.imagePath}`
     : "https://images.unsplash.com/photo-1503602642458-232111445657?w=1200&q=80";
 
-
+  console.log(item)
   return (
     <div className="max-w-6xl mx-auto p-6 text-slate-200">
       <div className="flex flex-col md:flex-row gap-8 items-start">

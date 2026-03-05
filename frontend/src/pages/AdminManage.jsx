@@ -39,7 +39,7 @@ const AdminManage = ({ items, setItems }) => {
     e.preventDefault();
     setError("");
 
-    // -------------------- validation --------------------
+    // ----- validation -------------------------------------------------
     if (!form.name || !form.price || !form.location || !form.description) {
       setError("Please fill in all required fields");
       return;
@@ -49,18 +49,18 @@ const AdminManage = ({ items, setItems }) => {
       return;
     }
 
-    // -------------------- build payload --------------------
+    // ----- payload ----------------------------------------------------
     const payload = {
       name: form.name,
       price: Number(form.price),
       location: form.location,
       description: form.description,
       detailedDescription: form.detailedDescription,
-      ...(form.path && { path: form.path }), // only send if we have a path
+      ...(form.path && { imagePath: form.path }), // only send if we have a path
     };
 
     try {
-      // -------------------- request --------------------
+      // ----- request --------------------------------------------------
       const url = editingId ? `/api/items/${editingId}` : "/api/items";
       const method = editingId ? "PUT" : "POST";
 
@@ -74,60 +74,40 @@ const AdminManage = ({ items, setItems }) => {
         throw new Error(data.message || "Failed to save item");
       }
 
-      // -------------------- server response --------------------
-      const saved = await res.json(); // may NOT contain `path`
+      // ----- server response -----------------------------------------
+      const saved = await res.json();
 
-      // Normalise the identifier (MongoDB uses `_id`, others may use `id`)
+      // Normalise the identifier once – the client always works with `id`
       const serverId = saved._id ?? saved.id;
+      if (!serverId) throw new Error("Server did not return an identifier");
 
-      // -------------------- merge with the existing item --------------------
-      // We need to keep the old image URL if the server didn’t return it.
-      setItems(prev =>
-        prev.map(item => {
-          // If we are adding a brand‑new item (`editingId` is falsy) the
-          // item will never be found in `prev`. In that case we fall back
-          // to the `else` branch after the map.
-          if (item.id === serverId) {
-            return {
-              // Start with what we already have (keeps `path` etc.)
-              ...item,
-              // Overwrite everything that the server sent back
-              ...saved,
-              // Ensure we still have a valid `id` field
-              id: serverId,
-              // If the server omitted `path`, keep the old one
-              path: saved.path ?? item.path,
-            };
-          }
-          return item;
-        })
-      );
+      // Ensure we always have a `path` property (fallback to the one we sent)
+      const normalized = {
+        ...saved,
+        id: serverId,
+        path: saved.path ?? saved.imagePath ?? form.path ?? "",
+      };
 
-      // -------------------- handle “add new” case --------------------
-      // When we just created a new product there is no existing entry in `prev`.
-      // In that situation `setItems` above didn’t add anything, so we do it now.
-      if (!editingId) {
-        setItems(prev => [
-          ...prev,
-          {
-            id: serverId,
-            name: saved.name,
-            price: saved.price,
-            location: saved.location,
-            description: saved.description,
-            detailedDescription: saved.detailedDescription,
-            // The server may have sent a path; otherwise fall back to what we had in the form
-            path: saved.path ?? form.path,
-          },
-        ]);
-      }
+      // ----- update local state ----------------------------------------
+      // 1️⃣ Edit existing item  (editingId is truthy)
+      // 2️⃣ Add brand‑new item (editingId is falsy)
+      setItems(prev => {
+        // If we are editing, replace the matching element
+        if (editingId) {
+          return prev.map(it => (it.id === serverId ? normalized : it));
+        }
 
-      // -------------------- clean up UI --------------------
+        // Otherwise we are inserting a brand‑new item at the end
+        return [...prev, normalized];
+      });
+
+      // ----- tidy up UI ------------------------------------------------
       resetForm();
     } catch (err) {
       setError(err.message ?? "Something went wrong");
     }
   };
+
 
 
 
