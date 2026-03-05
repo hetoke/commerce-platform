@@ -99,7 +99,7 @@ const ItemDetail = () => {
     ? `/uploads/${item.imagePath}`
     : "https://images.unsplash.com/photo-1503602642458-232111445657?w=1200&q=80";
 
-  console.log(item)
+  //console.log(item)
   return (
     <div className="max-w-6xl mx-auto p-6 text-slate-200">
       <div className="flex flex-col md:flex-row gap-8 items-start">

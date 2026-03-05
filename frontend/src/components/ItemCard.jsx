@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 
 const ItemCard = ({ item }) => {
+  console.log(item)
   const [isLoaded, setIsLoaded] = useState(false);
   const [isBuying, setIsBuying] = useState(false);
 

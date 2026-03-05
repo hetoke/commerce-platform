@@ -135,6 +135,10 @@ export const buyItem = async (req, res) => {
       priceAtPurchase: item.price,
     });
 
+    // Increment sellCount
+    item.sellCount = (item.sellCount || 0) + 1;
+    await item.save();
+
     return res.status(201).json(purchase);
   } catch (err) {
     if (err.code === 11000) {
@@ -148,8 +152,9 @@ export const buyItem = async (req, res) => {
 };
 
 export const cancelPurchase = async (req, res) => {
-  const { itemId } = req.params; // purchase id
+  const { itemId } = req.params; // purchase ID
 
+  // Find and delete the purchase
   const deleted = await Purchase.findOneAndDelete({
     _id: itemId,
     user: req.user.id,
@@ -157,6 +162,13 @@ export const cancelPurchase = async (req, res) => {
 
   if (!deleted) {
     return res.status(404).json({ message: "Purchase not found." });
+  }
+
+  // Decrement sellCount on the associated item
+  const item = await Item.findById(deleted.item);
+  if (item && item.sellCount > 0) {
+    item.sellCount -= 1;
+    await item.save();
   }
 
   return res.json({ message: "Purchase canceled successfully." });

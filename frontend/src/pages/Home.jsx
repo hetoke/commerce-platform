@@ -4,6 +4,7 @@ import ItemCard from "../components/ItemCard.jsx";
 import Typewriter from "../components/Typewriter.jsx";
 
 const Home = ({ items, error }) => {
+  //console.log(items)
   return (
     <main className="mx-auto w-full max-w-6xl px-6 pb-16 pt-10">
       <div className="mb-8">
