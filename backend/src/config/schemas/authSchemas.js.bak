@@ -1,14 +1,18 @@
 const authSchemas = {
   AuthResponse: {
     type: "object",
-    required: ["accessToken", "user"],
     properties: {
       accessToken: {
         type: "string",
         example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
       },
       user: {
-        $ref: "#/components/schemas/UserPublic",
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          username: { type: "string" },
+          email: { type: "string" },
+        },
       },
     },
   },

@@ -4,6 +4,7 @@ import { fileURLToPath } from "url";
 import accountSchemas from "./schemas/accountSchemas.js";
 import authSchemas from "./schemas/authSchemas.js";
 import itemSchemas from "./schemas/itemSchemas.js";
+import reviewSchemas from "./schemas/reviewSchemas.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -11,7 +12,8 @@ const __dirname = path.dirname(__filename);
 const schemas = {
   ...accountSchemas,
   ...authSchemas,
-  ...itemSchemas
+  ...itemSchemas,
+  ...reviewSchemas
 };
 
 const options = {
