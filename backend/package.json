@@ -5,8 +5,11 @@
   "main": "server.js",
   "type": "module",
   "scripts": {
-    "test": "cross-env TEST_EMAIL=you@example.com TEST_PASSWORD=secret vitest run",
+    "test": "cross-env TEST_IDENTIFIER=bob TEST_PASSWORD=customer123 vitest run",
+    "test_admin": "cross-env TEST_IDENTIFIER=admin TEST_PASSWORD=admin123 vitest run",
     "seed": "node src/scripts/runSeed.js",
+    "docs": "node src/scripts/generateAPIDocs.js",
+    "gen_testcases": "node src/scripts/generateTestCases.js", 
     "clean_tokens": "node src/scripts/cleanRefreshTokens.js",
     "start": "nodemon src/server.js"
   },

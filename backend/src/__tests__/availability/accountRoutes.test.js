@@ -1,90 +1,133 @@
-import { describe, it, expect, beforeAll } from 'vitest';
-import request from 'supertest';
-import app from '../../app.js';
+import { describe, it, expect, beforeAll } from 'vitest'
+import request from 'supertest'
+import app from '../../app.js'
 
 describe('PUT /api/account/update-username', () => {
-  let token;
+  const agent = request.agent(app)
 
   beforeAll(async () => {
-    const res = await request(app)
-      .post('/api/auth/login')
-      .send({ email: process.env.TEST_EMAIL, password: process.env.TEST_PASSWORD });
-    token = res.body.token;
-  });
+    await agent.post('/api/auth/login').send({ identifier: 'bob', password: 'customer123' })
+  })
 
   it('returns 400 when newUsername is missing', async () => {
-    const res = await request(app)
+    const res = await agent
       .put('/api/account/update-username')
-      .set('Authorization', `Bearer ${token}`)
-      .send({}); // missing newUsername
-    expect(res.status).toBe(400);
-  });
+      .send({})
+
+    expect(res.status).toBe(400)
+  })
 
   it('returns 400 when newUsername is too short', async () => {
-    const res = await request(app)
+    const res = await agent
       .put('/api/account/update-username')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ newUsername: 'ab' }); // less than 3 characters
-    expect(res.status).toBe(400);
-  });
+      .send({ newUsername: 'ab' })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when newUsername is too long', async () => {
+    const res = await agent
+      .put('/api/account/update-username')
+      .send({ newUsername: 'a'.repeat(31) })
+
+    expect(res.status).toBe(400)
+  })
 
   it('returns 400 when newUsername contains invalid characters', async () => {
-    const res = await request(app)
+    const res = await agent
       .put('/api/account/update-username')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ newUsername: 'invalid@username' }); // contains @
-    expect(res.status).toBe(400);
-  });
-});
+      .send({ newUsername: 'abc def' })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when newUsername lacks uppercase letter', async () => {
+    const res = await agent
+      .put('/api/account/update-username')
+      .send({ newUsername: 'abcdef123' })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when newUsername lacks lowercase letter', async () => {
+    const res = await agent
+      .put('/api/account/update-username')
+      .send({ newUsername: 'ABCDEF123' })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when newUsername lacks number', async () => {
+    const res = await agent
+      .put('/api/account/update-username')
+      .send({ newUsername: 'Abcdefgh' })
+
+    expect(res.status).toBe(400)
+  })
+})
 
 describe('PUT /api/account/change-password', () => {
-  let token;
+  const agent = request.agent(app)
 
   beforeAll(async () => {
-    const res = await request(app)
-      .post('/api/auth/login')
-      .send({ email: process.env.TEST_EMAIL, password: process.env.TEST_PASSWORD });
-    token = res.body.token;
-  });
+    await agent.post('/api/auth/login').send({ identifier: 'bob', password: 'customer123' })
+  })
 
   it('returns 400 when currentPassword is missing', async () => {
-    const res = await request(app)
+    const res = await agent
       .put('/api/account/change-password')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ newPassword: 'NewPass123' }); // missing currentPassword
-    expect(res.status).toBe(400);
-  });
+      .send({ newPassword: 'NewPass123' })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when newPassword is missing', async () => {
+    const res = await agent
+      .put('/api/account/change-password')
+      .send({ currentPassword: 'oldpass' })
+
+    expect(res.status).toBe(400)
+  })
 
   it('returns 400 when newPassword is too short', async () => {
-    const res = await request(app)
+    const res = await agent
       .put('/api/account/change-password')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ currentPassword: 'oldpassword', newPassword: 'short' }); // less than 8 characters
-    expect(res.status).toBe(400);
-  });
+      .send({ currentPassword: 'oldpass', newPassword: 'Short1' })
 
-  it('returns 400 when newPassword lacks required character types', async () => {
-    const res = await request(app)
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when newPassword lacks uppercase letter', async () => {
+    const res = await agent
       .put('/api/account/change-password')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ currentPassword: 'oldpassword', newPassword: 'weakpass' }); // no uppercase or number
-    expect(res.status).toBe(400);
-  });
-});
+      .send({ currentPassword: 'oldpass', newPassword: 'newpass123' })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when newPassword lacks lowercase letter', async () => {
+    const res = await agent
+      .put('/api/account/change-password')
+      .send({ currentPassword: 'oldpass', newPassword: 'NEWPASS123' })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when newPassword lacks number', async () => {
+    const res = await agent
+      .put('/api/account/change-password')
+      .send({ currentPassword: 'oldpass', newPassword: 'NewPassword' })
+
+    expect(res.status).toBe(400)
+  })
+})
 
 describe('GET /api/account/profile', () => {
-  let token;
+  const agent = request.agent(app)
 
   beforeAll(async () => {
-    const res = await request(app)
-      .post('/api/auth/login')
-      .send({ email: process.env.TEST_EMAIL, password: process.env.TEST_PASSWORD });
-    token = res.body.token;
-  });
+    await agent.post('/api/auth/login').send({ identifier: 'bob', password: 'customer123' })
+  })
 
-  it('returns 401 when Authorization header is missing', async () => {
-    const res = await request(app)
-      .get('/api/account/profile');
-    expect(res.status).toBe(401);
-  });
-});
+  // No validation tests possible for GET /profile since there are no query/body parameters
+})

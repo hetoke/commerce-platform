@@ -1,30 +1,16 @@
-import { describe, it, expect, beforeAll } from 'vitest';
-import request from 'supertest';
-import app from '../../app.js';
+import { describe, it, expect, beforeAll } from 'vitest'
+import request from 'supertest'
+import app from '../../app.js'
 
 describe('POST /api/uploads/image', () => {
-  let token;
+  const agent = request.agent(app)
 
   beforeAll(async () => {
-    const res = await request(app)
-      .post('/api/auth/login')
-      .send({ email: process.env.TEST_EMAIL, password: process.env.TEST_PASSWORD });
-    token = res.body.token;
-  });
+    await agent.post('/api/auth/login').send({ identifier: 'admin', password: 'admin123' })
+  })
 
-  it('returns 400 when no image file is provided', async () => {
-    const res = await request(app)
-      .post('/api/uploads/image')
-      .set('Authorization', `Bearer ${token}`)
-      .field('otherField', 'value');
-    expect(res.status).toBe(400);
-  });
-
-  it('returns 400 when image field is missing in multipart form data', async () => {
-    const res = await request(app)
-      .post('/api/uploads/image')
-      .set('Authorization', `Bearer ${token}`)
-      .attach('wrongFieldName', Buffer.from('fake image'), 'test.png');
-    expect(res.status).toBe(400);
-  });
-});
+  it('returns 400 when image field is missing', async () => {
+    const res = await agent.post('/api/uploads/image').field({}, {})
+    expect(res.status).toBe(400)
+  })
+})

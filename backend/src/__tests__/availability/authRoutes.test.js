@@ -1,125 +1,196 @@
-import { describe, it, expect, beforeAll } from 'vitest';
-import request from 'supertest';
-import app from '../../app.js';
+import { describe, it, expect, beforeAll } from 'vitest'
+import request from 'supertest'
+import app from '../../app.js'
 
 describe('POST /api/auth/google', () => {
+  const agent = request.agent(app)
+
+  beforeAll(async () => {
+    await agent.post('/api/auth/login').send({ identifier: 'bob', password: 'customer123' })
+  })
+
   it('returns 400 when credential is missing', async () => {
-    const res = await request(app)
+    const res = await agent
       .post('/api/auth/google')
-      .send({}); // missing credential
-    expect(res.status).toBe(400);
-  });
-});
+      .send({})
+
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when credential is not a string', async () => {
+    const res = await agent
+      .post('/api/auth/google')
+      .send({ credential: 12345 })
+
+    expect(res.status).toBe(400)
+  })
+})
 
 describe('POST /api/auth/login', () => {
-  it('returns 400 when email and password are missing', async () => {
-    const res = await request(app)
-      .post('/api/auth/login')
-      .send({}); // missing email and password
-    expect(res.status).toBe(400);
-  });
+  const agent = request.agent(app)
 
-  it('returns 400 when email is missing', async () => {
-    const res = await request(app)
+  beforeAll(async () => {
+    await agent.post('/api/auth/login').send({ identifier: 'bob', password: 'customer123' })
+  })
+
+  it('returns 400 when identifier is missing', async () => {
+    const res = await agent
       .post('/api/auth/login')
-      .send({ password: 'password123' }); // missing email
-    expect(res.status).toBe(400);
-  });
+      .send({ password: 'password123' })
+
+    expect(res.status).toBe(400)
+  })
 
   it('returns 400 when password is missing', async () => {
-    const res = await request(app)
+    const res = await agent
       .post('/api/auth/login')
-      .send({ email: 'test@example.com' }); // missing password
-    expect(res.status).toBe(400);
-  });
-});
+      .send({ identifier: 'testuser' })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when identifier is not a string', async () => {
+    const res = await agent
+      .post('/api/auth/login')
+      .send({ identifier: 123, password: 'password123' })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when password is not a string', async () => {
+    const res = await agent
+      .post('/api/auth/login')
+      .send({ identifier: 'testuser', password: 123 })
+
+    expect(res.status).toBe(400)
+  })
+})
 
 describe('POST /api/auth/logout', () => {
-  it('returns 500 when server error occurs', async () => {
-    // Assuming logout can fail due to server issues like cookie clearing failure
-    const res = await request(app)
-      .post('/api/auth/logout');
-    // In real scenario this would depend on implementation,
-    // but we assume there could be internal failures.
-    // We'll simulate by sending malformed cookies if needed.
-    // However, since no body or params, just test general failure handling.
-    // This might need adjustment based on actual logout logic.
-    expect(res.status).toBe(200); // normally succeeds even without auth
-  });
-});
+  const agent = request.agent(app)
+
+  beforeAll(async () => {
+    await agent.post('/api/auth/login').send({ identifier: 'bob', password: 'customer123' })
+  })
+
+  it('always succeeds and does not validate input', async () => {
+    const res = await agent
+      .post('/api/auth/logout')
+      .send({ invalidField: true })
+
+    expect(res.status).toBe(200)
+  })
+})
 
 describe('POST /api/auth/signup', () => {
-  it('returns 400 when required fields are missing', async () => {
-    const res = await request(app)
-      .post('/api/auth/signup')
-      .send({}); // missing all required fields
-    expect(res.status).toBe(400);
-  });
+  const agent = request.agent(app)
+
+  beforeAll(async () => {
+    await agent.post('/api/auth/login').send({ identifier: 'bob', password: 'customer123' })
+  })
 
   it('returns 400 when email is missing', async () => {
-    const res = await request(app)
+    const res = await agent
       .post('/api/auth/signup')
       .send({
         username: 'newuser',
-        password: 'password123'
-      }); // missing email
-    expect(res.status).toBe(400);
-  });
+        password: 'password123',
+        confirmPassword: 'password123'
+      })
+
+    expect(res.status).toBe(400)
+  })
 
   it('returns 400 when username is missing', async () => {
-    const res = await request(app)
+    const res = await agent
       .post('/api/auth/signup')
       .send({
         email: 'test@example.com',
-        password: 'password123'
-      }); // missing username
-    expect(res.status).toBe(400);
-  });
+        password: 'password123',
+        confirmPassword: 'password123'
+      })
+
+    expect(res.status).toBe(400)
+  })
 
   it('returns 400 when password is missing', async () => {
-    const res = await request(app)
+    const res = await agent
       .post('/api/auth/signup')
       .send({
         email: 'test@example.com',
-        username: 'newuser'
-      }); // missing password
-    expect(res.status).toBe(400);
-  });
-});
+        username: 'newuser',
+        confirmPassword: 'password123'
+      })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when confirmPassword is missing', async () => {
+    const res = await agent
+      .post('/api/auth/signup')
+      .send({
+        email: 'test@example.com',
+        username: 'newuser',
+        password: 'password123'
+      })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when email is invalid format', async () => {
+    const res = await agent
+      .post('/api/auth/signup')
+      .send({
+        email: 'invalid-email',
+        username: 'newuser',
+        password: 'password123',
+        confirmPassword: 'password123'
+      })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when password and confirmPassword do not match', async () => {
+    const res = await agent
+      .post('/api/auth/signup')
+      .send({
+        email: 'test@example.com',
+        username: 'newuser',
+        password: 'password123',
+        confirmPassword: 'different123'
+      })
+
+    expect(res.status).toBe(400)
+  })
+})
 
 describe('POST /api/auth/refresh', () => {
-  it('returns 500 when refresh token is invalid or database error occurs', async () => {
-    // Simulate an invalid/expired token which may lead to internal processing errors
-    const res = await request(app)
-      .post('/api/auth/refresh')
-      .set('Cookie', ['refreshToken=invalid_token']);
-    // Depending on implementation, could also return 403, but testing potential 500 here
-    expect([403, 500]).toContain(res.status);
-  });
-});
-
-describe('GET /api/auth/me', () => {
-  let token;
+  const agent = request.agent(app)
 
   beforeAll(async () => {
-    const res = await request(app)
-      .post('/api/auth/login')
-      .send({ email: process.env.TEST_EMAIL, password: process.env.TEST_PASSWORD });
-    token = res.body.token;
-  });
+    await agent.post('/api/auth/login').send({ identifier: 'bob', password: 'customer123' })
+  })
 
-  it('returns 401 when authorization header is missing', async () => {
-    const res = await request(app)
-      .get('/api/auth/me');
-    expect(res.status).toBe(401);
-  });
+  it('returns 403 when no refresh token provided', async () => {
+    const res = await agent
+      .post('/api/auth/refresh')
+      .send({})
 
-  it('returns 500 when user lookup fails due to server error', async () => {
-    // This assumes that requireAuth passes but verifyMe controller throws an unexpected error
+    expect(res.status).toBe(403)
+  })
+})
+
+describe('GET /api/auth/me', () => {
+  const agent = request.agent(app)
+
+  beforeAll(async () => {
+    await agent.post('/api/auth/login').send({ identifier: 'bob', password: 'customer123' })
+  })
+
+  it('returns 401 when not authenticated', async () => {
     const res = await request(app)
       .get('/api/auth/me')
-      .set('Authorization', 'Bearer invalid_jwt_token_here');
-    // Normally should be 401, but testing hypothetical internal error case
-    expect([401, 500]).toContain(res.status);
-  });
-});
+
+    expect(res.status).toBe(401)
+  })
+})

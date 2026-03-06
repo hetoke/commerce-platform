@@ -2,7 +2,6 @@ import bcrypt from "bcryptjs";
 import User from "../models/User.js";
 import Item from "../models/Item.js";
 import Review from "../models/Review.js";
-import mongoose from "mongoose";
 
 export async function seedDatabase() {
 
@@ -116,5 +115,5 @@ export async function seedDatabase() {
   console.log("Reviews seeded with atomic counters.");
 
   console.log("Seeding complete.");
-  await mongoose.disconnect();
+  //await mongoose.disconnect();
 };

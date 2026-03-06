@@ -17,7 +17,7 @@ const authSchemas = {
     type: "object",
     required: ["email", "password"],
     properties: {
-      email: {
+      identifier: {
         type: "string",
         example: "john@email.com",
       },

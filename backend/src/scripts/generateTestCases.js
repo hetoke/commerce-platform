@@ -3,9 +3,9 @@ import path from "path";
 import { globSync } from "glob";
 import { spawn } from "child_process";
 
-const ROUTES_DIR = "../routes";
-const OUTPUT_DIR = "../__tests__/availability";
-const APP_PATH = "../server";
+const ROUTES_DIR = "./src/routes";
+const OUTPUT_DIR = "./src/__tests__/availability";
+const APP_PATH = "../../app.js";
 const LOGIN_URL = "/api/auth/login"; // adjust to your login endpoint
 
 const MODEL = "qwen3-coder:480b-cloud";
@@ -25,50 +25,110 @@ function readFiles(dir) {
 // ─── Prompt Builder ──────────────────────────────────────────────────────────
 
 function buildPrompt(routeContent) {
-  return `You are a Vitest test generator. Given a route file with @swagger JSDoc blocks, generate a Vitest test file using supertest.
+  return `You are a Vitest test generator.
+Your task is to generate a Vitest test file using supertest for the given Express route file containing @swagger JSDoc blocks.
 
 STRICT RULES:
-- Output ONLY raw JavaScript, no markdown fences, no explanations
-- Tests focus ONLY on error cases: 400 (validation errors) and 500 (server errors)
-- Use supertest with the Express app imported from '${APP_PATH}'
-- Auth token is obtained ONCE in a beforeAll() block via POST to '${LOGIN_URL}'
-  using credentials from process.env.TEST_EMAIL and process.env.TEST_PASSWORD
-- Use the token in Authorization: Bearer header for protected routes
-- For 400 tests: send intentionally malformed or missing required fields
-- For 500 tests: only include if the route is likely to have a 500 case documented
-- Group tests per route in describe() blocks named by METHOD + path
-- Each test must have a clear description of what bad input is being sent
-- Import vitest globals as: import { describe, it, expect, beforeAll } from 'vitest'
-- Import supertest as: import request from 'supertest'
-- Import app as: import app from '${APP_PATH}'
+* Output ONLY raw JavaScript code
+* Do NOT output markdown fences
+* Do NOT include explanations
+* Do NOT include comments except minimal inline test descriptions
+* Tests must focus ONLY on error cases (HTTP 400 validation errors and HTTP 500 server errors)
 
-TEST FILE STRUCTURE EXAMPLE:
-import request from 'supertest';
-import app from '${APP_PATH}';
+AUTHENTICATION RULES:
+* Some routes require authentication.
+* Create a persistent supertest agent using: const agent = request.agent(app)
+* Perform login ONCE in a beforeAll() block using:
+await agent.post('${LOGIN_URL}').send({ identifier: 'bob', password: 'customer123' })
+* The test database is seeded with deterministic users:
+  - Admin user: identifier: 'admin' password: 'admin123'
+  - Normal user: identifier: 'bob' password: 'customer123'
+* Use the normal user (bob) for authentication unless the route clearly requires admin privileges.
 
-describe('POST /users', () => {
-  let token;
+SESSION RULES:
+* The API uses cookie-based authentication.
+* Because of this, ALWAYS perform authenticated requests using the same agent instance.
+* Do NOT manually set Authorization headers.
+* Do NOT assume the login endpoint returns a token.
+
+TEST GENERATION RULES:
+* Only generate tests that trigger:
+  * HTTP 400 (validation errors)
+  * HTTP 500 (server errors)
+* Do NOT generate tests expecting:
+  * 200
+  * 201
+  * success responses
+* Do NOT generate:
+  * 401
+  * 403
+
+VALIDATION TEST STRATEGY:
+Generate tests that send invalid inputs such as:
+* Missing required fields
+* Fields with invalid types
+* Fields that are too short
+* Fields that violate regex or character rules
+* Malformed request bodies
+* Invalid parameters
+
+STRUCTURE RULES:
+* Import vitest globals as: import { describe, it, expect, beforeAll } from 'vitest'
+* Import supertest as: import request from 'supertest'
+* Import the Express app from: import app from '${APP_PATH}'
+
+TEST FILE STRUCTURE:
+\`\`\`
+import { describe, it, expect, beforeAll } from 'vitest'
+import request from 'supertest'
+import app from '${APP_PATH}'
+
+describe('METHOD /route/path', () => {
+  const agent = request.agent(app)
 
   beforeAll(async () => {
-    const res = await request(app)
-      .post('${LOGIN_URL}')
-      .send({ email: process.env.TEST_EMAIL, password: process.env.TEST_PASSWORD });
-    token = res.body.token;
-  });
+    await agent.post('${LOGIN_URL}').send({ identifier: 'bob', password: 'customer123' })
+  })
 
-  it('returns 400 when email is missing', async () => {
-    const res = await request(app)
-      .post('/users')
-      .set('Authorization', \`Bearer \${token}\`)
-      .send({ name: 'Test' }); // missing email
-    expect(res.status).toBe(400);
-  });
-});
+  it('returns 400 when requiredField is missing', async () => {
+    const res = await agent
+      .post('/route/path')
+      .send({})
+
+    expect(res.status).toBe(400)
+  })
+})
+\`\`\`
+
+GROUPING RULES:
+* Each route should have its own describe() block
+* Name describe blocks using "METHOD /route/path"
+
+MOCKING RULES:
+* Do NOT modify imported modules directly
+* ES modules are immutable
+* If a test requires forcing a server error, use vi.mock()
+* vi.mock must appear before importing the Express app
+
+PARAMETER RULES:
+* If a route requires path parameters (e.g. /items/{id}), generate invalid parameter tests such as:
+  * malformed IDs
+  * missing parameters
+  * invalid formats
+
+STATUS CODE RULES:
+* Do not assume status codes
+* If the Swagger documentation defines response codes, follow them exactly
+* If Swagger does not define a response code, only generate 400 validation tests
+
+IMPORTANT:
+* Always send malformed or incomplete payloads to trigger validation failures
+* Keep tests simple and focused on the HTTP status code
+* DO NOT generate 500 tests unless the Swagger spec explicitly documents them
 
 ROUTE FILE:
 ${routeContent}`;
 }
-
 // ─── LLM Caller ──────────────────────────────────────────────────────────────
 
 function callLLM(prompt) {

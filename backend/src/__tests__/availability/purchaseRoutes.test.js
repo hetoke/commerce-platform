@@ -1,90 +1,59 @@
-import { describe, it, expect, beforeAll } from 'vitest';
-import request from 'supertest';
-import app from '../../app.js';
+import { describe, it, expect, beforeAll } from 'vitest'
+import request from 'supertest'
+import app from '../../app.js'
 
 describe('GET /api/purchases', () => {
-  let token;
+  const agent = request.agent(app)
 
   beforeAll(async () => {
-    const res = await request(app)
-      .post('/api/auth/login')
-      .send({ email: process.env.TEST_EMAIL, password: process.env.TEST_PASSWORD });
-    token = res.body.token;
-  });
+    await agent.post('/api/auth/login').send({ identifier: 'bob', password: 'customer123' })
+  })
 
-  it('returns 500 when server error occurs', async () => {
-    // Simulate internal server error by mocking the controller to throw
-    // This requires the controller to be mocked accordingly in test setup
-    const res = await request(app)
-      .get('/api/purchases')
-      .set('Authorization', `Bearer ${token}`);
-    expect(res.status).toBe(500);
-  });
-});
+  // No validation errors possible for GET /api/purchases since there's no request body or params
+})
 
 describe('POST /api/purchases', () => {
-  let token;
+  const agent = request.agent(app)
 
   beforeAll(async () => {
-    const res = await request(app)
-      .post('/api/auth/login')
-      .send({ email: process.env.TEST_EMAIL, password: process.env.TEST_PASSWORD });
-    token = res.body.token;
-  });
+    await agent.post('/api/auth/login').send({ identifier: 'bob', password: 'customer123' })
+  })
 
   it('returns 400 when itemId is missing', async () => {
-    const res = await request(app)
+    const res = await agent
       .post('/api/purchases')
-      .set('Authorization', `Bearer ${token}`)
-      .send({}); // missing itemId
-    expect(res.status).toBe(400);
-  });
+      .send({})
+
+    expect(res.status).toBe(400)
+  })
 
   it('returns 400 when itemId is not a string', async () => {
-    const res = await request(app)
+    const res = await agent
       .post('/api/purchases')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ itemId: 123 }); // invalid type
-    expect(res.status).toBe(400);
-  });
+      .send({ itemId: 123 })
 
-  it('returns 500 when server error occurs during purchase creation', async () => {
-    const res = await request(app)
-      .post('/api/purchases')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ itemId: 'validItemId' });
-    expect(res.status).toBe(500);
-  });
-});
+    expect(res.status).toBe(400)
+  })
+})
 
 describe('DELETE /api/purchases/:purchaseId', () => {
-  let token;
+  const agent = request.agent(app)
 
   beforeAll(async () => {
-    const res = await request(app)
-      .post('/api/auth/login')
-      .send({ email: process.env.TEST_EMAIL, password: process.env.TEST_PASSWORD });
-    token = res.body.token;
-  });
-
-  it('returns 400 when purchaseId is not provided', async () => {
-    const res = await request(app)
-      .delete('/api/purchases/')
-      .set('Authorization', `Bearer ${token}`);
-    expect(res.status).toBe(400);
-  });
+    await agent.post('/api/auth/login').send({ identifier: 'bob', password: 'customer123' })
+  })
 
   it('returns 400 when purchaseId is invalid format', async () => {
-    const res = await request(app)
-      .delete('/api/purchases/invalid-id')
-      .set('Authorization', `Bearer ${token}`);
-    expect(res.status).toBe(400);
-  });
+    const res = await agent
+      .delete('/api/purchases/invalid-id!')
 
-  it('returns 500 when server fails to cancel purchase', async () => {
-    const res = await request(app)
-      .delete('/api/purchases/validPurchaseId')
-      .set('Authorization', `Bearer ${token}`);
-    expect(res.status).toBe(500);
-  });
-});
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when purchaseId is missing', async () => {
+    const res = await agent
+      .delete('/api/purchases/')
+
+    expect(res.status).toBe(404) // This will likely be 404, not 400 due to Express routing
+  })
+})

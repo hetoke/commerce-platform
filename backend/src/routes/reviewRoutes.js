@@ -71,6 +71,30 @@ router.get("/:itemId/reviews", getItemReviews);
  *       404:
  *         description: Item not found
  */
-router.post("/:itemId/reviews", requireAuth, upsertReview);
+router.post("/:itemId/reviews", 
+  requireAuth, 
+  [
+    param("itemId").isMongoId(),
+
+    body("rating")
+      .exists()
+      .withMessage("Rating is required")
+      .isNumeric()
+      .withMessage("Rating must be a number")
+      .isInt({ min: 1, max: 5 }),
+
+    body("comment")
+      .optional()
+      .isLength({ max: 500 }),
+
+    (req, res, next) => {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+      next();
+    }
+  ]
+  upsertReview);
 
 export default router;

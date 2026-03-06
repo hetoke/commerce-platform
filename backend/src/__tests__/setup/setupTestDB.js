@@ -22,3 +22,5 @@ afterAll(async () => {
   await mongoose.connection.close();
   await mongo.stop();
 });
+
+console.log("TEST DB STARTED");

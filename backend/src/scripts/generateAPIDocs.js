@@ -3,10 +3,10 @@ import path from "path";
 import { globSync } from "glob";
 import { spawn } from "child_process";
 
-const ROUTES_DIR = "../routes";
-const CONTROLLERS_DIR = "../controllers";
-const SERVICES_DIR = "../services";
-const SCHEMAS_DIR = "../config/schemas";
+const ROUTES_DIR = "./src/routes";
+const CONTROLLERS_DIR = "./src/controllers";
+const SERVICES_DIR = "./src/services";
+const SCHEMAS_DIR = "./src/config/schemas";
 
 const MODEL = "qwen3-coder:480b-cloud";
 

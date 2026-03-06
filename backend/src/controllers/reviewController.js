@@ -17,6 +17,12 @@ export const upsertReview = async (req, res, next) => {
     const { itemId } = req.params;
     const { rating, comment } = req.body;
 
+    if (comment && comment.length > 500) {
+      return res.status(400).json({
+        message: "Comment must be at most 500 characters"
+      });
+    }
+
     const review = await upsertReviewService({
       itemId,
       userId: req.user._id,

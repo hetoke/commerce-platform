@@ -1,119 +1,116 @@
-import { describe, it, expect, beforeAll } from 'vitest';
-import request from 'supertest';
-import app from '../../app.js';
+import { describe, it, expect, beforeAll } from 'vitest'
+import request from 'supertest'
+import app from '../../app.js'
+
+describe('GET /api/items', () => {
+  const agent = request.agent(app)
+
+  beforeAll(async () => {
+    await agent.post('/api/auth/login').send({ identifier: 'bob', password: 'customer123' })
+  })
+
+  it('returns 500 when internal server error occurs', async () => {
+    const res = await agent.get('/api/items')
+    expect(res.status).toBe(500)
+  })
+})
 
 describe('GET /api/items/:itemId', () => {
-  let token;
+  const agent = request.agent(app)
 
   beforeAll(async () => {
-    const res = await request(app)
-      .post('/api/auth/login')
-      .send({ email: process.env.TEST_EMAIL, password: process.env.TEST_PASSWORD });
-    token = res.body.token;
-  });
+    await agent.post('/api/auth/login').send({ identifier: 'bob', password: 'customer123' })
+  })
 
-  it('returns 400 when itemId is invalid format', async () => {
-    const res = await request(app)
-      .get('/api/items/invalid-id!')
-      .set('Authorization', `Bearer ${token}`);
-    expect(res.status).toBe(400);
-  });
+  it('returns 400 when itemId is invalid', async () => {
+    const res = await agent.get('/api/items/invalid-id!')
+    expect(res.status).toBe(400)
+  })
 
-  it('returns 500 when unexpected error occurs during fetch', async () => {
-    // Assuming a specific itemId that triggers internal error
-    const res = await request(app)
-      .get('/api/items/internal-error-trigger')
-      .set('Authorization', `Bearer ${token}`);
-    expect(res.status).toBe(500);
-  });
-});
+  it('returns 500 when internal server error occurs', async () => {
+    const res = await agent.get('/api/items/123')
+    expect(res.status).toBe(500)
+  })
+})
 
 describe('POST /api/items', () => {
-  let token;
+  const agent = request.agent(app)
 
   beforeAll(async () => {
-    const res = await request(app)
-      .post('/api/auth/login')
-      .send({ email: process.env.TEST_EMAIL, password: process.env.TEST_PASSWORD });
-    token = res.body.token;
-  });
+    await agent.post('/api/auth/login').send({ identifier: 'admin', password: 'admin123' })
+  })
 
-  it('returns 400 when required fields are missing', async () => {
-    const res = await request(app)
+  it('returns 400 when required field "name" is missing', async () => {
+    const res = await agent
       .post('/api/items')
-      .set('Authorization', `Bearer ${token}`)
-      .send({}); // Missing all required fields
-    expect(res.status).toBe(400);
-  });
+      .send({ description: 'test item' })
 
-  it('returns 500 when unexpected error occurs during creation', async () => {
-    const res = await request(app)
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when request body is malformed', async () => {
+    const res = await agent
       .post('/api/items')
-      .set('Authorization', `Bearer ${token}`)
-      .send({
-        name: "Test Item",
-        description: "A test item"
-      }); // Valid data but assume backend fails
-    expect(res.status).toBe(500);
-  });
-});
+      .send(null)
+
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 500 when internal server error occurs', async () => {
+    const res = await agent
+      .post('/api/items')
+      .send({ name: 'validName', description: 'validDescription' })
+
+    expect(res.status).toBe(500)
+  })
+})
 
 describe('PUT /api/items/:itemId', () => {
-  let token;
+  const agent = request.agent(app)
 
   beforeAll(async () => {
-    const res = await request(app)
-      .post('/api/auth/login')
-      .send({ email: process.env.TEST_EMAIL, password: process.env.TEST_PASSWORD });
-    token = res.body.token;
-  });
+    await agent.post('/api/auth/login').send({ identifier: 'admin', password: 'admin123' })
+  })
 
-  it('returns 400 when itemId is not provided or invalid', async () => {
-    const res = await request(app)
-      .put('/api/items/')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ name: 'Updated Name' });
-    expect(res.status).toBe(400);
-  });
+  it('returns 400 when itemId is invalid', async () => {
+    const res = await agent
+      .put('/api/items/invalid-id!')
+      .send({ name: 'updatedName' })
 
-  it('returns 400 when request body has validation errors', async () => {
-    const res = await request(app)
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when request body is empty', async () => {
+    const res = await agent
       .put('/api/items/123')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ invalidField: '' }); // Invalid field structure
-    expect(res.status).toBe(400);
-  });
+      .send({})
 
-  it('returns 500 when unexpected error occurs during update', async () => {
-    const res = await request(app)
-      .put('/api/items/error-trigger-id')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ name: 'Valid Name' });
-    expect(res.status).toBe(500);
-  });
-});
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 500 when internal server error occurs', async () => {
+    const res = await agent
+      .put('/api/items/123')
+      .send({ name: 'updatedName' })
+
+    expect(res.status).toBe(500)
+  })
+})
 
 describe('DELETE /api/items/:itemId', () => {
-  let token;
+  const agent = request.agent(app)
 
   beforeAll(async () => {
-    const res = await request(app)
-      .post('/api/auth/login')
-      .send({ email: process.env.TEST_EMAIL, password: process.env.TEST_PASSWORD });
-    token = res.body.token;
-  });
+    await agent.post('/api/auth/login').send({ identifier: 'admin', password: 'admin123' })
+  })
 
-  it('returns 400 when itemId is missing', async () => {
-    const res = await request(app)
-      .delete('/api/items/')
-      .set('Authorization', `Bearer ${token}`);
-    expect(res.status).toBe(400);
-  });
+  it('returns 400 when itemId is invalid', async () => {
+    const res = await agent.delete('/api/items/invalid-id!')
+    expect(res.status).toBe(400)
+  })
 
-  it('returns 500 when unexpected error occurs during deletion', async () => {
-    const res = await request(app)
-      .delete('/api/items/error-trigger-id')
-      .set('Authorization', `Bearer ${token}`);
-    expect(res.status).toBe(500);
-  });
-});
+  it('returns 500 when internal server error occurs', async () => {
+    const res = await agent.delete('/api/items/123')
+    expect(res.status).toBe(500)
+  })
+})
