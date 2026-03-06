@@ -4,6 +4,11 @@ import {
   upsertReview,
 } from "../controllers/reviewController.js";
 import { requireAuth } from "../middleware/auth.js";
+import {
+  param,
+  body,
+  validationResult
+} from "express-validator";
 
 const router = express.Router();
 
@@ -71,22 +76,20 @@ router.get("/:itemId/reviews", getItemReviews);
  *       404:
  *         description: Item not found
  */
-router.post("/:itemId/reviews", 
-  requireAuth, 
+router.post(
+  "/:itemId/reviews",
+  requireAuth,
   [
     param("itemId").isMongoId(),
-
     body("rating")
       .exists()
       .withMessage("Rating is required")
       .isNumeric()
       .withMessage("Rating must be a number")
       .isInt({ min: 1, max: 5 }),
-
     body("comment")
       .optional()
       .isLength({ max: 500 }),
-
     (req, res, next) => {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -94,7 +97,8 @@ router.post("/:itemId/reviews",
       }
       next();
     }
-  ]
-  upsertReview);
+  ],
+  upsertReview
+);
 
 export default router;

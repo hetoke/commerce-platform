@@ -2,15 +2,7 @@ import { describe, it, expect, beforeAll } from 'vitest'
 import request from 'supertest'
 import app from '../../app.js'
 
-describe('GET /api/purchases', () => {
-  const agent = request.agent(app)
 
-  beforeAll(async () => {
-    await agent.post('/api/auth/login').send({ identifier: 'bob', password: 'customer123' })
-  })
-
-  // No validation errors possible for GET /api/purchases since there's no request body or params
-})
 
 describe('POST /api/purchases', () => {
   const agent = request.agent(app)

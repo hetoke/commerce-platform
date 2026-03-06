@@ -122,12 +122,3 @@ describe('PUT /api/account/change-password', () => {
   })
 })
 
-describe('GET /api/account/profile', () => {
-  const agent = request.agent(app)
-
-  beforeAll(async () => {
-    await agent.post('/api/auth/login').send({ identifier: 'bob', password: 'customer123' })
-  })
-
-  // No validation tests possible for GET /profile since there are no query/body parameters
-})

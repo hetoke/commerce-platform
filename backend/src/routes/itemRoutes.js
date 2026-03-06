@@ -8,6 +8,7 @@ import {
 } from "../controllers/itemController.js";
 
 import { requireAdmin, requireAuth } from "../middleware/auth.js";
+import { param, body, validationResult } from "express-validator";
 
 const router = express.Router();
 
@@ -138,7 +139,39 @@ router.post("/", requireAuth, requireAdmin, createItem);
  *       '500':
  *         description: Internal server error
  */
-router.put("/:itemId", requireAuth, requireAdmin, updateItem);
+router.put(
+  "/:itemId",
+  [
+    param("itemId").isMongoId(),
+
+    body("name")
+      .optional()
+      .isLength({ min: 3, max: 100 }),
+
+    body("price")
+      .optional()
+      .isFloat({ min: 0 }),
+
+    body("location")
+      .optional()
+      .isLength({ min: 2 }),
+
+    body()
+      .custom(body => Object.keys(body).length > 0)
+      .withMessage("Request body cannot be empty"),
+
+    (req, res, next) => {
+      const errors = validationResult(req)
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() })
+      }
+      next()
+    }
+  ],
+  requireAuth,
+  requireAdmin,
+  updateItem
+)
 
 /**
  * @swagger
@@ -176,6 +209,25 @@ router.put("/:itemId", requireAuth, requireAdmin, updateItem);
  *       '500':
  *         description: Internal server error
  */
-router.delete("/:itemId", requireAuth, requireAdmin, deleteItem);
+router.delete(
+  "/:itemId",
+  [
+    param("itemId")
+      .exists()
+      .withMessage("itemId is required")
+      .isMongoId()
+      .withMessage("itemId must be a valid MongoDB ObjectId"),
+
+    (req, res, next) => {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+      next();
+    }
+  ],
+  requireAdmin,
+  deleteItem
+);
 
 export default router;

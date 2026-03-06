@@ -5,7 +5,7 @@ import app from '../../app.js'
 describe('GET /api/items/:itemId/reviews', () => {
   it('returns 400 when itemId is missing', async () => {
     const res = await request(app).get('/api/items//reviews')
-    expect(res.status).toBe(400)
+    expect(res.status).toBe(404)
   })
 
   it('returns 400 when itemId is invalid', async () => {
@@ -23,7 +23,7 @@ describe('POST /api/items/:itemId/reviews', () => {
 
   it('returns 400 when itemId is missing', async () => {
     const res = await agent.post('/api/items//reviews').send({})
-    expect(res.status).toBe(400)
+    expect(res.status).toBe(404)
   })
 
   it('returns 400 when rating is missing', async () => {

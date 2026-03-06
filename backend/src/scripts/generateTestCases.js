@@ -101,8 +101,13 @@ describe('METHOD /route/path', () => {
 \`\`\`
 
 GROUPING RULES:
-* Each route should have its own describe() block
-* Name describe blocks using "METHOD /route/path"
+- Each route that has generated tests must have its own describe() block.
+- Name describe blocks using "METHOD /route/path".
+
+EMPTY SUITE RULE:
+- If no tests can be generated for a route, do NOT generate a describe() block for that route.
+- A describe() block must NEVER be empty.
+- Every describe() block must contain at least one it() test.
 
 MOCKING RULES:
 * Do NOT modify imported modules directly

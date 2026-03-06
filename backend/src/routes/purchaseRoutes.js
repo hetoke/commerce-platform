@@ -5,6 +5,7 @@ import {
 	cancelPurchase
 } from "../controllers/purchaseController.js";
 import { requireAuth } from "../middleware/auth.js";
+import { param, body, validationResult } from "express-validator";
 
 const router = express.Router();
 
@@ -66,7 +67,26 @@ router.get("/", requireAuth, listCustomerItems);
  *       '409':
  *         description: Item already purchased
  */
-router.post("/", requireAuth, createPurchase);
+router.post(
+  "/",
+  requireAuth,
+  [
+    body("itemId")
+      .exists()
+      .withMessage("itemId is required")
+      .isMongoId()
+      .withMessage("itemId must be a valid MongoDB ObjectId"),
+
+    (req, res, next) => {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+      next();
+    }
+  ],
+  createPurchase
+);
 
 /**
  * @swagger
@@ -96,7 +116,24 @@ router.post("/", requireAuth, createPurchase);
  *       '404':
  *         description: Purchase not found
  */
-router.delete("/:purchaseId", requireAuth, cancelPurchase);
+router.delete(
+  "/:purchaseId",
+  requireAuth,
+  [
+    param("purchaseId")
+      .isMongoId()
+      .withMessage("Invalid purchaseId format"),
+
+    (req, res, next) => {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+      next();
+    }
+  ],
+  cancelPurchase
+);
 
 
 

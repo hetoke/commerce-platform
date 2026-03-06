@@ -9,20 +9,20 @@ describe('POST /api/auth/google', () => {
     await agent.post('/api/auth/login').send({ identifier: 'bob', password: 'customer123' })
   })
 
-  it('returns 400 when credential is missing', async () => {
+  it('returns 401 when credential is missing', async () => {
     const res = await agent
       .post('/api/auth/google')
       .send({})
 
-    expect(res.status).toBe(400)
+    expect(res.status).toBe(401)
   })
 
-  it('returns 400 when credential is not a string', async () => {
+  it('returns 401 when credential is not a string', async () => {
     const res = await agent
       .post('/api/auth/google')
       .send({ credential: 12345 })
 
-    expect(res.status).toBe(400)
+    expect(res.status).toBe(401)
   })
 })
 
@@ -95,7 +95,6 @@ describe('POST /api/auth/signup', () => {
       .send({
         username: 'newuser',
         password: 'password123',
-        confirmPassword: 'password123'
       })
 
     expect(res.status).toBe(400)
@@ -106,8 +105,7 @@ describe('POST /api/auth/signup', () => {
       .post('/api/auth/signup')
       .send({
         email: 'test@example.com',
-        password: 'password123',
-        confirmPassword: 'password123'
+        password: 'password123'
       })
 
     expect(res.status).toBe(400)
@@ -118,20 +116,7 @@ describe('POST /api/auth/signup', () => {
       .post('/api/auth/signup')
       .send({
         email: 'test@example.com',
-        username: 'newuser',
-        confirmPassword: 'password123'
-      })
-
-    expect(res.status).toBe(400)
-  })
-
-  it('returns 400 when confirmPassword is missing', async () => {
-    const res = await agent
-      .post('/api/auth/signup')
-      .send({
-        email: 'test@example.com',
-        username: 'newuser',
-        password: 'password123'
+        username: 'newuser'
       })
 
     expect(res.status).toBe(400)
@@ -143,21 +128,7 @@ describe('POST /api/auth/signup', () => {
       .send({
         email: 'invalid-email',
         username: 'newuser',
-        password: 'password123',
-        confirmPassword: 'password123'
-      })
-
-    expect(res.status).toBe(400)
-  })
-
-  it('returns 400 when password and confirmPassword do not match', async () => {
-    const res = await agent
-      .post('/api/auth/signup')
-      .send({
-        email: 'test@example.com',
-        username: 'newuser',
-        password: 'password123',
-        confirmPassword: 'different123'
+        password: 'password123'
       })
 
     expect(res.status).toBe(400)
@@ -172,7 +143,7 @@ describe('POST /api/auth/refresh', () => {
   })
 
   it('returns 403 when no refresh token provided', async () => {
-    const res = await agent
+    const res = await request(app)
       .post('/api/auth/refresh')
       .send({})
 

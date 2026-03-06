@@ -5,8 +5,7 @@
   "main": "server.js",
   "type": "module",
   "scripts": {
-    "test": "cross-env TEST_IDENTIFIER=bob TEST_PASSWORD=customer123 vitest run",
-    "test_admin": "cross-env TEST_IDENTIFIER=admin TEST_PASSWORD=admin123 vitest run",
+    "test": "cross-env NODE_ENV=test vitest run",
     "seed": "node src/scripts/runSeed.js",
     "docs": "node src/scripts/generateAPIDocs.js",
     "gen_testcases": "node src/scripts/generateTestCases.js", 

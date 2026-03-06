@@ -9,6 +9,7 @@ import {
 } from "../controllers/authController.js";
 import { loginLimiter, signupLimiter } from "../middleware/rateLimitter.js";
 import { requireAuth } from "../middleware/auth.js";
+import { body, validationResult } from "express-validator";
 
 const router = express.Router();
 
@@ -116,7 +117,34 @@ router.post("/logout", logout);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post("/signup", signupLimiter, signup);
+router.post(
+  "/signup",
+  [
+    body("username")
+      .exists()
+      .isLength({ min: 3 }),
+
+    body("email")
+      .exists()
+      .withMessage("Email is required")
+      .isEmail()
+      .withMessage("Invalid email format"),
+
+    body("password")
+      .exists()
+      .isLength({ min: 6 }),
+
+    (req, res, next) => {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+      next();
+    }
+  ],
+  signupLimiter,
+  signup
+);
 
 /**
  * @swagger

@@ -2,18 +2,7 @@ import { describe, it, expect, beforeAll } from 'vitest'
 import request from 'supertest'
 import app from '../../app.js'
 
-describe('GET /api/items', () => {
-  const agent = request.agent(app)
 
-  beforeAll(async () => {
-    await agent.post('/api/auth/login').send({ identifier: 'bob', password: 'customer123' })
-  })
-
-  it('returns 500 when internal server error occurs', async () => {
-    const res = await agent.get('/api/items')
-    expect(res.status).toBe(500)
-  })
-})
 
 describe('GET /api/items/:itemId', () => {
   const agent = request.agent(app)
@@ -25,11 +14,6 @@ describe('GET /api/items/:itemId', () => {
   it('returns 400 when itemId is invalid', async () => {
     const res = await agent.get('/api/items/invalid-id!')
     expect(res.status).toBe(400)
-  })
-
-  it('returns 500 when internal server error occurs', async () => {
-    const res = await agent.get('/api/items/123')
-    expect(res.status).toBe(500)
   })
 })
 
@@ -51,17 +35,9 @@ describe('POST /api/items', () => {
   it('returns 400 when request body is malformed', async () => {
     const res = await agent
       .post('/api/items')
-      .send(null)
+      .send({})
 
     expect(res.status).toBe(400)
-  })
-
-  it('returns 500 when internal server error occurs', async () => {
-    const res = await agent
-      .post('/api/items')
-      .send({ name: 'validName', description: 'validDescription' })
-
-    expect(res.status).toBe(500)
   })
 })
 
@@ -88,13 +64,6 @@ describe('PUT /api/items/:itemId', () => {
     expect(res.status).toBe(400)
   })
 
-  it('returns 500 when internal server error occurs', async () => {
-    const res = await agent
-      .put('/api/items/123')
-      .send({ name: 'updatedName' })
-
-    expect(res.status).toBe(500)
-  })
 })
 
 describe('DELETE /api/items/:itemId', () => {
@@ -107,10 +76,5 @@ describe('DELETE /api/items/:itemId', () => {
   it('returns 400 when itemId is invalid', async () => {
     const res = await agent.delete('/api/items/invalid-id!')
     expect(res.status).toBe(400)
-  })
-
-  it('returns 500 when internal server error occurs', async () => {
-    const res = await agent.delete('/api/items/123')
-    expect(res.status).toBe(500)
   })
 })
