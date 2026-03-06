@@ -2,17 +2,17 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "seed": "node src/scripts/seedData.js",
+    "test": "cross-env TEST_EMAIL=you@example.com TEST_PASSWORD=secret vitest run",
+    "seed": "node src/scripts/runSeed.js",
     "clean_tokens": "node src/scripts/cleanRefreshTokens.js",
     "start": "nodemon src/server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "module",
   "dependencies": {
     "axios": "^1.13.6",
     "bcryptjs": "^3.0.3",
@@ -26,12 +26,19 @@
     "glob": "^13.0.6",
     "google-auth-library": "^10.6.1",
     "jsonwebtoken": "^9.0.3",
-    "mongoose": "^9.1.6",
+    "mongoose": "^9.2.4",
     "morgan": "^1.10.1",
     "multer": "^2.0.2",
     "nodemon": "^3.1.11",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "yaml": "^2.8.2"
+  },
+  "devDependencies": {
+    "@jest/globals": "^29.7.0",
+    "cross-env": "^10.1.0",
+    "mongodb-memory-server": "^11.0.1",
+    "supertest": "^7.2.2",
+    "vitest": "^4.0.18"
   }
 }

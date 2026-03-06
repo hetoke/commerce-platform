@@ -1,27 +1,30 @@
+import { describe, it, expect, beforeAll } from 'vitest';
 import request from 'supertest';
-import app from '../server.js';
-
-describe('GET /api/items', () => {
-  it('returns 500 when internal server error occurs', async () => {
-    // Mocking potential internal error by not providing required setup
-    // In a real scenario, you might mock the database to throw an error
-    const res = await request(app).get('/api/items');
-    // This test assumes that there's a possible internal error condition
-    // If the route can't produce a 500 without special mocking, this may not be applicable
-    // Including it since the swagger docs indicate a 500 response possibility
-  });
-});
+import app from '../../app.js';
 
 describe('GET /api/items/:itemId', () => {
-  it('returns 400 when itemId is invalid or missing', async () => {
-    const res = await request(app).get('/api/items/invalid_id_format');
+  let token;
+
+  beforeAll(async () => {
+    const res = await request(app)
+      .post('/api/auth/login')
+      .send({ email: process.env.TEST_EMAIL, password: process.env.TEST_PASSWORD });
+    token = res.body.token;
+  });
+
+  it('returns 400 when itemId is invalid format', async () => {
+    const res = await request(app)
+      .get('/api/items/invalid-id!')
+      .set('Authorization', `Bearer ${token}`);
     expect(res.status).toBe(400);
   });
 
-  it('returns 500 when internal server error occurs', async () => {
-    // Similar to above, assumes potential for internal error
-    const res = await request(app).get('/api/items/someValidIdButForcedError');
-    // Would require specific backend conditions or mocks to force 500
+  it('returns 500 when unexpected error occurs during fetch', async () => {
+    // Assuming a specific itemId that triggers internal error
+    const res = await request(app)
+      .get('/api/items/internal-error-trigger')
+      .set('Authorization', `Bearer ${token}`);
+    expect(res.status).toBe(500);
   });
 });
 
@@ -30,7 +33,7 @@ describe('POST /api/items', () => {
 
   beforeAll(async () => {
     const res = await request(app)
-      .post('/auth/login')
+      .post('/api/auth/login')
       .send({ email: process.env.TEST_EMAIL, password: process.env.TEST_PASSWORD });
     token = res.body.token;
   });
@@ -43,15 +46,15 @@ describe('POST /api/items', () => {
     expect(res.status).toBe(400);
   });
 
-  it('returns 500 when internal server error occurs', async () => {
+  it('returns 500 when unexpected error occurs during creation', async () => {
     const res = await request(app)
       .post('/api/items')
       .set('Authorization', `Bearer ${token}`)
       .send({
-        name: 'Test Item',
-        description: 'A valid item description'
-      });
-    // Assumes creation could fail due to internal issues like DB connection
+        name: "Test Item",
+        description: "A test item"
+      }); // Valid data but assume backend fails
+    expect(res.status).toBe(500);
   });
 });
 
@@ -60,28 +63,33 @@ describe('PUT /api/items/:itemId', () => {
 
   beforeAll(async () => {
     const res = await request(app)
-      .post('/auth/login')
+      .post('/api/auth/login')
       .send({ email: process.env.TEST_EMAIL, password: process.env.TEST_PASSWORD });
     token = res.body.token;
   });
 
-  it('returns 400 when itemId is invalid and body has missing fields', async () => {
+  it('returns 400 when itemId is not provided or invalid', async () => {
     const res = await request(app)
-      .put('/api/items/invalid-id')
+      .put('/api/items/')
       .set('Authorization', `Bearer ${token}`)
-      .send({}); // Invalid ID and empty body
+      .send({ name: 'Updated Name' });
     expect(res.status).toBe(400);
   });
 
-  it('returns 500 when internal server error occurs during update', async () => {
+  it('returns 400 when request body has validation errors', async () => {
     const res = await request(app)
-      .put('/api/items/validIdButWillFailInternally')
+      .put('/api/items/123')
       .set('Authorization', `Bearer ${token}`)
-      .send({
-        name: 'Updated Name',
-        description: 'Updated Description'
-      });
-    // Requires backend setup to simulate failure
+      .send({ invalidField: '' }); // Invalid field structure
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 500 when unexpected error occurs during update', async () => {
+    const res = await request(app)
+      .put('/api/items/error-trigger-id')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Valid Name' });
+    expect(res.status).toBe(500);
   });
 });
 
@@ -90,15 +98,22 @@ describe('DELETE /api/items/:itemId', () => {
 
   beforeAll(async () => {
     const res = await request(app)
-      .post('/auth/login')
+      .post('/api/auth/login')
       .send({ email: process.env.TEST_EMAIL, password: process.env.TEST_PASSWORD });
     token = res.body.token;
   });
 
-  it('returns 500 when internal server error occurs during deletion', async () => {
+  it('returns 400 when itemId is missing', async () => {
     const res = await request(app)
-      .delete('/api/items/validItemIdButFailsInternally')
+      .delete('/api/items/')
       .set('Authorization', `Bearer ${token}`);
-    // Again, requires backend configuration to simulate failures
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 500 when unexpected error occurs during deletion', async () => {
+    const res = await request(app)
+      .delete('/api/items/error-trigger-id')
+      .set('Authorization', `Bearer ${token}`);
+    expect(res.status).toBe(500);
   });
 });

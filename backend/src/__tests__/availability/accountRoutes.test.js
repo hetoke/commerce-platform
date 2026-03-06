@@ -1,12 +1,13 @@
+import { describe, it, expect, beforeAll } from 'vitest';
 import request from 'supertest';
-import app from '../server.js';
+import app from '../../app.js';
 
 describe('PUT /api/account/update-username', () => {
   let token;
 
   beforeAll(async () => {
     const res = await request(app)
-      .post('/auth/login')
+      .post('/api/auth/login')
       .send({ email: process.env.TEST_EMAIL, password: process.env.TEST_PASSWORD });
     token = res.body.token;
   });
@@ -31,7 +32,7 @@ describe('PUT /api/account/update-username', () => {
     const res = await request(app)
       .put('/api/account/update-username')
       .set('Authorization', `Bearer ${token}`)
-      .send({ newUsername: 'user@name' }); // contains @ which is not allowed
+      .send({ newUsername: 'invalid@username' }); // contains @
     expect(res.status).toBe(400);
   });
 });
@@ -41,7 +42,7 @@ describe('PUT /api/account/change-password', () => {
 
   beforeAll(async () => {
     const res = await request(app)
-      .post('/auth/login')
+      .post('/api/auth/login')
       .send({ email: process.env.TEST_EMAIL, password: process.env.TEST_PASSWORD });
     token = res.body.token;
   });
@@ -62,11 +63,11 @@ describe('PUT /api/account/change-password', () => {
     expect(res.status).toBe(400);
   });
 
-  it('returns 400 when newPassword does not meet complexity requirements', async () => {
+  it('returns 400 when newPassword lacks required character types', async () => {
     const res = await request(app)
       .put('/api/account/change-password')
       .set('Authorization', `Bearer ${token}`)
-      .send({ currentPassword: 'oldpassword', newPassword: 'simplepass' }); // no uppercase or number
+      .send({ currentPassword: 'oldpassword', newPassword: 'weakpass' }); // no uppercase or number
     expect(res.status).toBe(400);
   });
 });
@@ -76,10 +77,14 @@ describe('GET /api/account/profile', () => {
 
   beforeAll(async () => {
     const res = await request(app)
-      .post('/auth/login')
+      .post('/api/auth/login')
       .send({ email: process.env.TEST_EMAIL, password: process.env.TEST_PASSWORD });
     token = res.body.token;
   });
 
-  // No 500 test needed as this route doesn't have documented server error cases
+  it('returns 401 when Authorization header is missing', async () => {
+    const res = await request(app)
+      .get('/api/account/profile');
+    expect(res.status).toBe(401);
+  });
 });

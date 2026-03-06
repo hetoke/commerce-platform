@@ -67,4 +67,4 @@ itemSchema.virtual("averageRating").get(function () {
 itemSchema.set("toJSON", { virtuals: true });
 itemSchema.set("toObject", { virtuals: true });
 
-export default mongoose.model("Item", itemSchema);
+export default mongoose.models.Item || mongoose.model("Item", itemSchema);

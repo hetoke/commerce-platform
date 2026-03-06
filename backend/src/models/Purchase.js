@@ -26,4 +26,4 @@ const purchaseSchema = new mongoose.Schema(
 
 purchaseSchema.index({ user: 1, item: 1 }, { unique: true });
 
-export default mongoose.model("Purchase", purchaseSchema);
+export default mongoose.models.Purchase || mongoose.model("Purchase", purchaseSchema);

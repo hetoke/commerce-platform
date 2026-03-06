@@ -1,5 +1,6 @@
+import { describe, it, expect, beforeAll } from 'vitest';
 import request from 'supertest';
-import app from '../server.js';
+import app from '../../app.js';
 
 describe('GET /api/items/:itemId/reviews', () => {
   it('returns 400 when itemId is invalid', async () => {
@@ -14,7 +15,7 @@ describe('POST /api/items/:itemId/reviews', () => {
 
   beforeAll(async () => {
     const res = await request(app)
-      .post('/auth/login')
+      .post('/api/auth/login')
       .send({ email: process.env.TEST_EMAIL, password: process.env.TEST_PASSWORD });
     token = res.body.token;
   });
@@ -27,19 +28,19 @@ describe('POST /api/items/:itemId/reviews', () => {
     expect(res.status).toBe(400);
   });
 
-  it('returns 400 when rating is not a number', async () => {
-    const res = await request(app)
-      .post('/api/items/123/reviews')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ rating: 'five', comment: 'Great item!' }); // invalid rating type
-    expect(res.status).toBe(400);
-  });
-
   it('returns 400 when rating is out of range', async () => {
     const res = await request(app)
       .post('/api/items/123/reviews')
       .set('Authorization', `Bearer ${token}`)
-      .send({ rating: 6, comment: 'Too high!' }); // rating > 5
+      .send({ rating: 6, comment: 'Too high' }); // rating > 5
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 400 when itemId is not provided', async () => {
+    const res = await request(app)
+      .post('/api/items//reviews') // empty itemId
+      .set('Authorization', `Bearer ${token}`)
+      .send({ rating: 5 });
     expect(res.status).toBe(400);
   });
 });

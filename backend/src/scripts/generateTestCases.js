@@ -5,8 +5,8 @@ import { spawn } from "child_process";
 
 const ROUTES_DIR = "../routes";
 const OUTPUT_DIR = "../__tests__/availability";
-const APP_PATH = "../server.js"; // path to your Express app export
-const LOGIN_URL = "/auth/login"; // adjust to your login endpoint
+const APP_PATH = "../server";
+const LOGIN_URL = "/api/auth/login"; // adjust to your login endpoint
 
 const MODEL = "qwen3-coder:480b-cloud";
 
@@ -25,7 +25,7 @@ function readFiles(dir) {
 // ─── Prompt Builder ──────────────────────────────────────────────────────────
 
 function buildPrompt(routeContent) {
-  return `You are a Jest test generator. Given a route file with @swagger JSDoc blocks, generate a Jest test file using supertest.
+  return `You are a Vitest test generator. Given a route file with @swagger JSDoc blocks, generate a Vitest test file using supertest.
 
 STRICT RULES:
 - Output ONLY raw JavaScript, no markdown fences, no explanations
@@ -38,6 +38,7 @@ STRICT RULES:
 - For 500 tests: only include if the route is likely to have a 500 case documented
 - Group tests per route in describe() blocks named by METHOD + path
 - Each test must have a clear description of what bad input is being sent
+- Import vitest globals as: import { describe, it, expect, beforeAll } from 'vitest'
 - Import supertest as: import request from 'supertest'
 - Import app as: import app from '${APP_PATH}'
 
@@ -145,7 +146,7 @@ async function processRoutes(routeFiles) {
   console.log(`Failed               : ${failed}`);
   console.log(`─────────────────────────────────`);
   console.log(`\nRun tests with:`);
-  console.log(`  TEST_EMAIL=you@example.com TEST_PASSWORD=secret npx jest __tests__/availability`);
+  console.log(`  npm test`);
 }
 
 // ─── Entry Point ─────────────────────────────────────────────────────────────

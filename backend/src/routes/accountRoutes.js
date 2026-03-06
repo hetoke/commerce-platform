@@ -59,7 +59,7 @@ router.put(
       .trim()
       .isLength({ min: 3, max: 30 })
       .withMessage("Username must be between 3 and 30 characters")
-      .matches(/^[a-zA-Z0-9_-]+$/)
+      .matches(new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)"))
       .withMessage(
         "Username can only contain letters, numbers, underscores, and hyphens"
       ),
@@ -114,7 +114,7 @@ router.put(
     body("newPassword")
       .isLength({ min: 8 })
       .withMessage("New password must be at least 8 characters")
-      .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
+      .matches(new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)"))
       .withMessage(
         "Password must contain at least one uppercase letter, one lowercase letter, and one number"
       ),

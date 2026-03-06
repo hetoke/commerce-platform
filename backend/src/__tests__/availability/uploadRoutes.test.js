@@ -1,12 +1,13 @@
+import { describe, it, expect, beforeAll } from 'vitest';
 import request from 'supertest';
-import app from '../server.js';
+import app from '../../app.js';
 
 describe('POST /api/uploads/image', () => {
   let token;
 
   beforeAll(async () => {
     const res = await request(app)
-      .post('/auth/login')
+      .post('/api/auth/login')
       .send({ email: process.env.TEST_EMAIL, password: process.env.TEST_PASSWORD });
     token = res.body.token;
   });
@@ -15,15 +16,15 @@ describe('POST /api/uploads/image', () => {
     const res = await request(app)
       .post('/api/uploads/image')
       .set('Authorization', `Bearer ${token}`)
-      .send({}); // missing image file
+      .field('otherField', 'value');
     expect(res.status).toBe(400);
   });
 
-  it('returns 400 when image field is not a file', async () => {
+  it('returns 400 when image field is missing in multipart form data', async () => {
     const res = await request(app)
       .post('/api/uploads/image')
       .set('Authorization', `Bearer ${token}`)
-      .field('image', 'not-a-file'); // sending text instead of file
+      .attach('wrongFieldName', Buffer.from('fake image'), 'test.png');
     expect(res.status).toBe(400);
   });
 });

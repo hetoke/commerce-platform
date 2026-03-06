@@ -36,4 +36,4 @@ const reviewSchema = new mongoose.Schema(
 // 🚫 Prevent same user reviewing same item twice
 reviewSchema.index({ item: 1, user: 1 }, { unique: true });
 
-export default mongoose.model("Review", reviewSchema);
+export default mongoose.models.Review || mongoose.model("Review", reviewSchema);

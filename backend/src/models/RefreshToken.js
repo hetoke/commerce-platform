@@ -8,4 +8,4 @@ const refreshTokenSchema = new mongoose.Schema({
   replacedByToken: { type: String }, // optional
 }, { timestamps: true });
 
-export default mongoose.model("RefreshToken", refreshTokenSchema);
+export default mongoose.models.RefreshToken || mongoose.model("RefreshToken", refreshTokenSchema);
