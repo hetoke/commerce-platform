@@ -142,7 +142,7 @@ router.put(
  *               type: object
  *               properties:
  *                 user:
- *                   $ref: '#/components/schemas/UserProfile'
+ *                   $ref: '#/components/schemas/UserProfileDetail'
  *       401:
  *         description: Unauthorized – missing or invalid token
  *         content:

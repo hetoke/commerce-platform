@@ -13,7 +13,7 @@ const router = express.Router();
  *     tags:
  *       - Uploads
  *     security:
- *       - bearerAuth: []               # JWT / cookie‑based authentication
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:

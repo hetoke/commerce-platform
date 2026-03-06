@@ -11,21 +11,25 @@ import { requireAdmin, requireAuth } from "../middleware/auth.js";
 
 const router = express.Router();
 
+
 /**
  * @swagger
  * /api/items:
  *   get:
  *     summary: Retrieve all items
- *     tags: [Items]
+ *     tags:
+ *       - Items
  *     responses:
- *       200:
- *         description: An array of items
+ *       '200':
+ *         description: A list of items
  *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/Item'
+ *       '500':
+ *         description: Internal server error
  */
 router.get("/", listItems);
 
@@ -34,7 +38,8 @@ router.get("/", listItems);
  * /api/items/{itemId}:
  *   get:
  *     summary: Retrieve a single item by ID
- *     tags: [Items]
+ *     tags:
+ *       - Items
  *     parameters:
  *       - in: path
  *         name: itemId
@@ -43,16 +48,18 @@ router.get("/", listItems);
  *           type: string
  *         description: Item identifier
  *     responses:
- *       200:
- *         description: Item object
+ *       '200':
+ *         description: Item details retrieved successfully
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Item'
- *       400:
- *         description: Invalid item ID
- *       404:
+ *       '400':
+ *         description: Validation error
+ *       '404':
  *         description: Item not found
+ *       '500':
+ *         description: Internal server error
  */
 router.get("/:itemId", getItemDetails);
 
@@ -61,7 +68,8 @@ router.get("/:itemId", getItemDetails);
  * /api/items:
  *   post:
  *     summary: Create a new item (Admin only)
- *     tags: [Items]
+ *     tags:
+ *       - Items
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -71,27 +79,32 @@ router.get("/:itemId", getItemDetails);
  *           schema:
  *             $ref: '#/components/schemas/CreateItemRequest'
  *     responses:
- *       201:
+ *       '201':
  *         description: Item created successfully
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Item'
- *       400:
- *         description: Missing or invalid fields
- *       401:
+ *       '400':
+ *         description: Validation error
+ *       '401':
  *         description: Unauthorized
- *       403:
+ *       '403':
  *         description: Forbidden (Admin only)
+ *       '500':
+ *         description: Internal server error
  */
 router.post("/", requireAuth, requireAdmin, createItem);
+
+
 
 /**
  * @swagger
  * /api/items/{itemId}:
  *   put:
  *     summary: Update an existing item (Admin only)
- *     tags: [Items]
+ *     tags:
+ *       - Items
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -108,20 +121,22 @@ router.post("/", requireAuth, requireAdmin, createItem);
  *           schema:
  *             $ref: '#/components/schemas/UpdateItemRequest'
  *     responses:
- *       200:
+ *       '200':
  *         description: Item updated successfully
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Item'
- *       400:
+ *       '400':
  *         description: Validation error
- *       401:
+ *       '401':
  *         description: Unauthorized
- *       403:
+ *       '403':
  *         description: Forbidden (Admin only)
- *       404:
+ *       '404':
  *         description: Item not found
+ *       '500':
+ *         description: Internal server error
  */
 router.put("/:itemId", requireAuth, requireAdmin, updateItem);
 
@@ -130,7 +145,8 @@ router.put("/:itemId", requireAuth, requireAdmin, updateItem);
  * /api/items/{itemId}:
  *   delete:
  *     summary: Delete an item (Admin only)
- *     tags: [Items]
+ *     tags:
+ *       - Items
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -141,18 +157,24 @@ router.put("/:itemId", requireAuth, requireAdmin, updateItem);
  *           type: string
  *         description: ID of the item to delete
  *     responses:
- *       200:
+ *       '200':
  *         description: Item deleted successfully
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/SuccessResponse'
- *       401:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Item deleted."
+ *       '401':
  *         description: Unauthorized
- *       403:
+ *       '403':
  *         description: Forbidden (Admin only)
- *       404:
+ *       '404':
  *         description: Item not found
+ *       '500':
+ *         description: Internal server error
  */
 router.delete("/:itemId", requireAuth, requireAdmin, deleteItem);
 

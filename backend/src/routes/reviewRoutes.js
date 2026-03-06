@@ -1,4 +1,3 @@
-// routes/reviewRoutes.js
 import express from "express";
 import {
   getItemReviews,
@@ -32,18 +31,10 @@ const router = express.Router();
  *                 $ref: '#/components/schemas/Review'
  *       400:
  *         description: Invalid item ID
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         description: Item not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.get('/:itemId/reviews', getItemReviews);
+router.get("/:itemId/reviews", getItemReviews);
 
 /**
  * @swagger
@@ -75,23 +66,11 @@ router.get('/:itemId/reviews', getItemReviews);
  *               $ref: '#/components/schemas/Review'
  *       400:
  *         description: Validation error (e.g., missing/invalid rating)
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       401:
  *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         description: Item not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/:itemId/reviews', requireAuth, upsertReview);
+router.post("/:itemId/reviews", requireAuth, upsertReview);
 
 export default router;
