@@ -3,4 +3,4 @@
 dev:
 	npx concurrently \
 		"npm --prefix frontend run dev" \
-		"npm --prefix backend run start"
+		"npm --prefix backend run dev"

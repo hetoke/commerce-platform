@@ -7,7 +7,7 @@ const Navbar = ({ isLoggedIn, onLogout }) => {
     <nav className="relative w-full h-14 px-6 flex items-center bg-[#0f141b] border-b border-[#1f2937]">
       {/* Left */}
       <div className="flex items-center gap-6">
-        <span className="font-semibold text-lg text-slate-100">Hetoke Shop</span>
+        <span className="font-semibold text-lg text-slate-100">MiniStore</span>
       </div>
 
       <ul className="absolute left-1/2 -translate-x-1/2 flex flex-row gap-8 list-none">
