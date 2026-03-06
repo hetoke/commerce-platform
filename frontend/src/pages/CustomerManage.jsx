@@ -11,7 +11,7 @@ const CustomerManage = () => {
   useEffect(() => {
     const fetchPurchases = async () => {
       try {
-        const response = await protectedFetch("/api/items/purchases");
+        const response = await protectedFetch("/api/purchases");
         //console.log(response)
 
 
@@ -41,7 +41,7 @@ const CustomerManage = () => {
       setLoadingId(id);
 
       const response = await protectedFetch(
-        `/api/items/purchases/${id}`,
+        `/api/purchases/${id}`,
         { method: "DELETE" }
       );
 

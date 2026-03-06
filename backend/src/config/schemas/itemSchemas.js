@@ -66,6 +66,24 @@ const itemSchemas = {
   },
 
   /**
+   * Customer‑facing view of a purchase (used by GET /api/purchases/me).
+   */
+  CustomerPurchaseItem: {
+    type: "object",
+    properties: {
+      id: { type: "string", description: "Purchase record ID" },
+      itemId: { type: "string", description: "ID of the purchased item" },
+      name: { type: "string" },
+      price: { type: "number" },
+      location: { type: "string" },
+      description: { type: "string" },
+      path: { type: "string", description: "Image path of the item" },
+      purchasedAt: { type: "string", format: "date-time" },
+    },
+    required: ["id", "itemId", "name", "price", "location", "description", "path", "purchasedAt"],
+  },
+
+  /**
    * Generic error response used by many endpoints.
    */
   ErrorResponse: {

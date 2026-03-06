@@ -38,19 +38,23 @@ const authSchemas = {
     },
   },
 
+  /**
+   * Response payload for the refresh endpoint. The controller returns a simple
+   * message indicating the rotation of tokens; the actual tokens are sent via
+   * HttpOnly cookies, not in the JSON body.
+   */
   RefreshResponse: {
     type: "object",
+    required: ["message"],
     properties: {
-      accessToken: {
+      message: {
         type: "string",
+        example: "Token rotated.",
+        description: "Indicates that new access and refresh tokens have been issued.",
       },
     },
   },
 
-  /**
-   * Request payload for Google OAuth sign‑in. The front‑end sends the ID token
-   * obtained from Google (usually called "credential").
-   */
   GoogleAuthRequest: {
     type: "object",
     required: ["credential"],

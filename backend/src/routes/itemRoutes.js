@@ -4,70 +4,12 @@ import {
   deleteItem,
   listItems,
   getItemDetails,
-  listCustomerItems,
-  updateItem,
-  buyItem,
-  cancelPurchase,
-} from "../controllers/itemsController.js";
+  updateItem
+} from "../controllers/itemController.js";
 
-import {
-  getItemReviews,
-  upsertReview,
-} from "../controllers/reviewController.js";
 import { requireAdmin, requireAuth } from "../middleware/auth.js";
 
 const router = express.Router();
-
-/**
- * @swagger
- * /api/items/purchases:
- *   get:
- *     summary: Get current user's purchased items
- *     tags: [Items]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: List of purchased items
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Purchase'
- *       401:
- *         description: Unauthorized
- */
-router.get("/purchases", requireAuth, listCustomerItems);
-
-/**
- * @swagger
- * /api/items/purchases/{purchaseId}:
- *   delete:
- *     summary: Cancel a purchase
- *     tags: [Items]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: purchaseId
- *         required: true
- *         schema:
- *           type: string
- *         description: ID of the purchase to cancel
- *     responses:
- *       200:
- *         description: Purchase cancelled successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/SuccessResponse'
- *       401:
- *         description: Unauthorized
- *       404:
- *         description: Purchase not found
- */
-router.delete("/purchases/:itemId", requireAuth, cancelPurchase);
 
 /**
  * @swagger
@@ -116,72 +58,6 @@ router.get("/:itemId", getItemDetails);
 
 /**
  * @swagger
- * /api/items/{itemId}/reviews:
- *   get:
- *     summary: Get all reviews for a specific item
- *     tags: [Items]
- *     parameters:
- *       - in: path
- *         name: itemId
- *         required: true
- *         schema:
- *           type: string
- *         description: Item identifier
- *     responses:
- *       200:
- *         description: List of reviews
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Review'
- *       400:
- *         description: Invalid item ID
- *       404:
- *         description: Item not found
- */
-router.get("/:itemId/reviews", getItemReviews);
-
-/**
- * @swagger
- * /api/items/{itemId}/reviews:
- *   post:
- *     summary: Create or update a review for an item (upsert)
- *     tags: [Items]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: itemId
- *         required: true
- *         schema:
- *           type: string
- *         description: Item identifier
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/UpsertReviewRequest'
- *     responses:
- *       200:
- *         description: Review created/updated successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Review'
- *       400:
- *         description: Validation error (e.g., missing/invalid rating)
- *       401:
- *         description: Unauthorized
- *       404:
- *         description: Item not found
- */
-router.post("/:itemId/reviews", requireAuth, upsertReview);
-
-/**
- * @swagger
  * /api/items:
  *   post:
  *     summary: Create a new item (Admin only)
@@ -209,37 +85,6 @@ router.post("/:itemId/reviews", requireAuth, upsertReview);
  *         description: Forbidden (Admin only)
  */
 router.post("/", requireAuth, requireAdmin, createItem);
-
-/**
- * @swagger
- * /api/items/{itemId}/buy:
- *   post:
- *     summary: Purchase an item
- *     tags: [Items]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: itemId
- *         required: true
- *         schema:
- *           type: string
- *         description: ID of the item to purchase
- *     responses:
- *       201:
- *         description: Purchase successful
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Purchase'
- *       400:
- *         description: Bad request (e.g., item not found)
- *       401:
- *         description: Unauthorized
- *       409:
- *         description: Item already purchased
- */
-router.post("/:itemId/buy", requireAuth, buyItem);
 
 /**
  * @swagger

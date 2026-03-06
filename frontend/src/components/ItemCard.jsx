@@ -22,8 +22,11 @@ const ItemCard = ({ item, onToast }) => {
     try {
       setIsBuying(true);
 
-      const res = await protectedFetch(`/api/items/${item.id}/buy`, {
+      const res = await protectedFetch(`/api/purchases`, {
         method: "POST",
+        body: JSON.stringify({
+          itemId: item.id,
+        }),
       });
       const data = await res.json();
 

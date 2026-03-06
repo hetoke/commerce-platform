@@ -67,7 +67,12 @@ const ItemDetail = () => {
 
     try {
       setIsSubmitting(true);
-      const res = await protectedFetch(`/api/items/${itemId}/buy`, { method: "POST" });
+      const res = await protectedFetch(`/api/purchases`, {
+        method: "POST",
+        body: JSON.stringify({
+          itemId: item.id,
+        }),
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Purchase failed.");
 

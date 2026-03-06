@@ -8,11 +8,23 @@ const itemSchemas = {
       location: { type: "string", example: "New York" },
       description: { type: "string" },
       detailedDescription: { type: "string" },
+      /**
+       * Relative URL or path to the product image. This field is returned by the
+       * API when an item has an associated image (uploaded via the /upload route).
+       */
+      imagePath: { type: "string", example: "/uploads/abc123.jpg" },
+      /**
+       * The total sum of all rating values for this item. Used internally to
+       * compute averageRating. It is exposed for completeness because the
+       * controller may return it.
+       */
+      totalRating: { type: "number", example: 45 },
       averageRating: { type: "number", example: 4.5 },
       reviewCount: { type: "number", example: 12 },
       sellCount: { type: "number", example: 30 },
       createdAt: { type: "string", format: "date-time" },
     },
+    required: ["id", "name", "price", "location", "description"]
   },
 
   CreateItemRequest: {
@@ -24,6 +36,10 @@ const itemSchemas = {
       location: { type: "string" },
       description: { type: "string" },
       detailedDescription: { type: "string" },
+      /**
+       * Path returned by the upload endpoint – client can supply an existing
+       * image path when creating an item.
+       */
       path: { type: "string" },
     },
   },
