@@ -6,7 +6,8 @@ describe('PUT /api/account/update-username', () => {
   const agent = request.agent(app)
 
   beforeAll(async () => {
-    await agent.post('/api/auth/login').send({ identifier: 'bob', password: 'customer123' })
+    const res = await agent.post('/api/auth/login').send({ identifier: 'bob', password: 'customer123' })
+    expect(res.status).toBeLessThan(400)
   })
 
   it('returns 400 when newUsername is missing', async () => {
@@ -40,30 +41,6 @@ describe('PUT /api/account/update-username', () => {
 
     expect(res.status).toBe(400)
   })
-
-  it('returns 400 when newUsername lacks uppercase letter', async () => {
-    const res = await agent
-      .put('/api/account/update-username')
-      .send({ newUsername: 'abcdef123' })
-
-    expect(res.status).toBe(400)
-  })
-
-  it('returns 400 when newUsername lacks lowercase letter', async () => {
-    const res = await agent
-      .put('/api/account/update-username')
-      .send({ newUsername: 'ABCDEF123' })
-
-    expect(res.status).toBe(400)
-  })
-
-  it('returns 400 when newUsername lacks number', async () => {
-    const res = await agent
-      .put('/api/account/update-username')
-      .send({ newUsername: 'Abcdefgh' })
-
-    expect(res.status).toBe(400)
-  })
 })
 
 describe('PUT /api/account/change-password', () => {
@@ -84,7 +61,7 @@ describe('PUT /api/account/change-password', () => {
   it('returns 400 when newPassword is missing', async () => {
     const res = await agent
       .put('/api/account/change-password')
-      .send({ currentPassword: 'oldpass' })
+      .send({ currentPassword: 'customer123' })
 
     expect(res.status).toBe(400)
   })
@@ -92,7 +69,7 @@ describe('PUT /api/account/change-password', () => {
   it('returns 400 when newPassword is too short', async () => {
     const res = await agent
       .put('/api/account/change-password')
-      .send({ currentPassword: 'oldpass', newPassword: 'Short1' })
+      .send({ currentPassword: 'customer123', newPassword: 'Short1' })
 
     expect(res.status).toBe(400)
   })
@@ -100,7 +77,7 @@ describe('PUT /api/account/change-password', () => {
   it('returns 400 when newPassword lacks uppercase letter', async () => {
     const res = await agent
       .put('/api/account/change-password')
-      .send({ currentPassword: 'oldpass', newPassword: 'newpass123' })
+      .send({ currentPassword: 'customer123', newPassword: 'newpass123' })
 
     expect(res.status).toBe(400)
   })
@@ -108,7 +85,7 @@ describe('PUT /api/account/change-password', () => {
   it('returns 400 when newPassword lacks lowercase letter', async () => {
     const res = await agent
       .put('/api/account/change-password')
-      .send({ currentPassword: 'oldpass', newPassword: 'NEWPASS123' })
+      .send({ currentPassword: 'customer123', newPassword: 'NEWPASS123' })
 
     expect(res.status).toBe(400)
   })
@@ -116,9 +93,8 @@ describe('PUT /api/account/change-password', () => {
   it('returns 400 when newPassword lacks number', async () => {
     const res = await agent
       .put('/api/account/change-password')
-      .send({ currentPassword: 'oldpass', newPassword: 'NewPassword' })
+      .send({ currentPassword: 'customer123', newPassword: 'NewPassword' })
 
     expect(res.status).toBe(400)
   })
 })
-

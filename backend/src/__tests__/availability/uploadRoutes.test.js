@@ -13,4 +13,9 @@ describe('POST /api/uploads/image', () => {
     const res = await agent.post('/api/uploads/image').field({}, {})
     expect(res.status).toBe(400)
   })
+
+  it('returns 400 when no file is provided in multipart request', async () => {
+    const res = await agent.post('/api/uploads/image')
+    expect(res.status).toBe(400)
+  })
 })

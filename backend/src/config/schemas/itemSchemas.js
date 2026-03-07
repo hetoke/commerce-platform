@@ -66,7 +66,7 @@ const itemSchemas = {
   },
 
   /**
-   * Customer‑facing view of a purchase (used by GET /api/purchases/me).
+   * Customer‑facing view of a purchase.
    */
   CustomerPurchaseItem: {
     type: "object",
@@ -74,10 +74,11 @@ const itemSchemas = {
       id: { type: "string", description: "Purchase record ID" },
       itemId: { type: "string", description: "ID of the purchased item" },
       name: { type: "string" },
-      price: { type: "number" },
+      price: { type: "number", example: 36 },
       location: { type: "string" },
       description: { type: "string" },
       path: { type: "string", description: "Image path of the item" },
+      quantity: {type: "number", example: 2},
       purchasedAt: { type: "string", format: "date-time" },
     },
     required: ["id", "itemId", "name", "price", "location", "description", "path", "purchasedAt"],

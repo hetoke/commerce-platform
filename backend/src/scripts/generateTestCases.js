@@ -22,10 +22,21 @@ function readFiles(dir) {
   return result;
 }
 
+function readExistingTest(fileName) {
+  const testFileName = fileName.replace(".js", ".test.js");
+  const testPath = path.join(OUTPUT_DIR, testFileName);
+
+  if (fs.existsSync(testPath)) {
+    return fs.readFileSync(testPath, "utf8");
+  }
+
+  return null;
+}
+
 // ─── Prompt Builder ──────────────────────────────────────────────────────────
 
-function buildPrompt(routeContent) {
-  return `You are a Vitest test generator.
+function buildPrompt(routeContent, existingTestContent = null) {
+  let basePrompt = `You are a Vitest test generator.
 Your task is to generate a Vitest test file using supertest for the given Express route file containing @swagger JSDoc blocks.
 
 STRICT RULES:
@@ -133,6 +144,12 @@ IMPORTANT:
 
 ROUTE FILE:
 ${routeContent}`;
+
+  if (existingTestContent) {
+    basePrompt += `\n\nEXISTING TEST FILE:\n${existingTestContent}\n\nRULE: Only append NEW test cases to the EXISTING structure above. Preserve all imports, structure, and formatting.`;
+  }
+
+  return basePrompt
 }
 // ─── LLM Caller ──────────────────────────────────────────────────────────────
 
@@ -194,7 +211,8 @@ async function processRoutes(routeFiles) {
       continue;
     }
 
-    const prompt = buildPrompt(content);
+    const existingTestContent = readExistingTest(fileName);
+    const prompt = buildPrompt(content, existingTestContent);
 
     try {
       const testCode = await callLLM(prompt);

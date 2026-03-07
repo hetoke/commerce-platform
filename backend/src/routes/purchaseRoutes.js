@@ -38,7 +38,7 @@ router.get("/", requireAuth, listCustomerItems);
  *   post:
  *     summary: Purchase an item
  *     tags:
- *       - Items
+ *       - Purchase
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -53,6 +53,10 @@ router.get("/", requireAuth, listCustomerItems);
  *               itemId:
  *                 type: string
  *                 description: ID of the item to purchase
+ *               quantity:
+ *                 type: integer
+ *                 description: Quantity of the item to purchase
+ *                 example: 1
  *     responses:
  *       '201':
  *         description: Purchase successful
@@ -69,14 +73,22 @@ router.get("/", requireAuth, listCustomerItems);
  */
 router.post(
   "/",
-  requireAuth,
   [
+    // Validate itemId
     body("itemId")
       .exists()
       .withMessage("itemId is required")
       .isMongoId()
       .withMessage("itemId must be a valid MongoDB ObjectId"),
 
+    // Validate quantity
+    body("quantity")
+      .exists()
+      .withMessage("quantity is required")
+      .isInt({ min: 1 })
+      .withMessage("quantity must be an integer greater than 0"),
+
+    // Middleware to return 400 if any validation errors
     (req, res, next) => {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -85,6 +97,7 @@ router.post(
       next();
     }
   ],
+  requireAuth,
   createPurchase
 );
 

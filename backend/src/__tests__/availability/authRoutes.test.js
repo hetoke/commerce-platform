@@ -133,6 +133,66 @@ describe('POST /api/auth/signup', () => {
 
     expect(res.status).toBe(400)
   })
+
+  it('returns 400 when username is too short', async () => {
+    const res = await agent
+      .post('/api/auth/signup')
+      .send({
+        email: 'test@example.com',
+        username: 'ab',
+        password: 'password123'
+      })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when password is too short', async () => {
+    const res = await agent
+      .post('/api/auth/signup')
+      .send({
+        email: 'test@example.com',
+        username: 'newuser',
+        password: '123'
+      })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when email is not a string', async () => {
+    const res = await agent
+      .post('/api/auth/signup')
+      .send({
+        email: 123,
+        username: 'newuser',
+        password: 'password123'
+      })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when username is not a string', async () => {
+    const res = await agent
+      .post('/api/auth/signup')
+      .send({
+        email: 'test@example.com',
+        username: 123,
+        password: 'password123'
+      })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when password is not a string', async () => {
+    const res = await agent
+      .post('/api/auth/signup')
+      .send({
+        email: 'test@example.com',
+        username: 'newuser',
+        password: 123
+      })
+
+    expect(res.status).toBe(400)
+  })
 })
 
 describe('POST /api/auth/refresh', () => {

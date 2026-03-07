@@ -3,7 +3,7 @@ import request from 'supertest'
 import app from '../../app.js'
 
 describe('GET /api/items/:itemId/reviews', () => {
-  it('returns 400 when itemId is missing', async () => {
+  it('returns 404 when itemId is missing', async () => {
     const res = await request(app).get('/api/items//reviews')
     expect(res.status).toBe(404)
   })
@@ -21,7 +21,7 @@ describe('POST /api/items/:itemId/reviews', () => {
     await agent.post('/api/auth/login').send({ identifier: 'bob', password: 'customer123' })
   })
 
-  it('returns 400 when itemId is missing', async () => {
+  it('returns 404 when itemId is missing', async () => {
     const res = await agent.post('/api/items//reviews').send({})
     expect(res.status).toBe(404)
   })
@@ -45,6 +45,11 @@ describe('POST /api/items/:itemId/reviews', () => {
     const res = await agent
       .post('/api/items/item123/reviews')
       .send({ rating: 5, comment: 'a'.repeat(501) })
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when itemId is not a valid Mongo ID', async () => {
+    const res = await agent.post('/api/items/invalid-id/reviews').send({ rating: 3 })
     expect(res.status).toBe(400)
   })
 })

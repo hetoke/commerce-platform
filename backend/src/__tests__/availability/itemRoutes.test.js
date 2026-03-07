@@ -4,6 +4,7 @@ import app from '../../app.js'
 
 
 
+
 describe('GET /api/items/:itemId', () => {
   const agent = request.agent(app)
 
@@ -60,6 +61,30 @@ describe('PUT /api/items/:itemId', () => {
     const res = await agent
       .put('/api/items/123')
       .send({})
+
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when name is too short', async () => {
+    const res = await agent
+      .put('/api/items/123')
+      .send({ name: 'ab' })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when price is negative', async () => {
+    const res = await agent
+      .put('/api/items/123')
+      .send({ price: -5 })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when location is too short', async () => {
+    const res = await agent
+      .put('/api/items/123')
+      .send({ location: 'a' })
 
     expect(res.status).toBe(400)
   })
