@@ -40,3 +40,7 @@ jobs:
         run: |
           cd backend
           npm test
+        env:
+          JWT_SECRET: super-secret-test-key
+          JWT_REFRESH_SECRET: super-secret-refresh-key
+          NODE_ENV: test
