@@ -15,12 +15,8 @@ jobs:
         node-version: [20.x]
 
     steps:
-      - name: Debug file structure
-        run: |
-          pwd
-          ls -la
-          ls -la backend/
-      
+
+
       - name: Checkout repository
         uses: actions/checkout@v3
 
@@ -28,6 +24,12 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+
+      - name: Debug file structure
+        run: |
+          pwd
+          ls -la
+          ls -la backend/
 
       - name: Install backend dependencies
         run: |
