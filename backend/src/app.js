@@ -1,5 +1,3 @@
-import dotenv from "dotenv";
-import path from "path";
 import express from "express";
 import morgan from "morgan";
 import cors from "cors";
@@ -14,7 +12,6 @@ import accountRoutes from "./routes/accountRoutes.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
 import purchaseRoutes from "./routes/purchaseRoutes.js";
 
-dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 
 const app = express();
 
