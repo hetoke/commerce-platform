@@ -36,11 +36,15 @@ jobs:
           cd backend
           npm ci
 
+      - name: Create CI .env file
+        run: |
+          cd backend
+          echo "JWT_SECRET=super-secret-test-key" >> .env
+          echo "JWT_REFRESH_SECRET=super-secret-refresh-key" >> .env
+          echo "NODE_ENV=test" >> .env
+          
+
       - name: Run backend tests
         run: |
           cd backend
           npm test
-        env:
-          JWT_SECRET: super-secret-test-key
-          JWT_REFRESH_SECRET: super-secret-refresh-key
-          NODE_ENV: test
