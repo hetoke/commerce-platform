@@ -5,6 +5,5 @@ export default defineConfig({
     globals: true,
     include: ["src/__tests__/**/*.test.js"],
     setupFiles: ["./src/__tests__/setup/setupTestDB.js"],
-    fileParallelism: false
   }
 });
