@@ -1,4 +1,12 @@
 // setupTestDB.js
+import { fileURLToPath } from "url";
+import path from "path";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+console.log("SETUP DIR:", __dirname);
+console.log("ENV PATH:", path.resolve(__dirname, "../../../.env"));
+console.log("CWD:", process.cwd());
+
 import { beforeAll, afterAll } from "vitest";
 import mongoose from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
