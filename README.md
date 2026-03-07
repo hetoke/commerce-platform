@@ -14,6 +14,10 @@ The project focuses on clean architecture, maintainability, and secure API desig
 - Username: `bob`
 - Password: `customer123`
 
+**Or**
+
+- Sign up instantly using **Google OAuth**
+
 Admin access is restricted to prevent abuse of the live demo.
 
 ## Features
@@ -42,8 +46,7 @@ If you would like to explore these features, please contact me.
 
 ### Frontend
 
-- React
-- React Router
+- ReactJS
 - TailwindCSS
 
 ### Backend

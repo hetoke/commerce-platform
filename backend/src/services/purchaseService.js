@@ -1,5 +1,6 @@
 import Item from "../models/Item.js";
 import Purchase from "../models/Purchase.js";
+import mongoose from "mongoose";
 
 export const listCustomerItemsService = async (userId) => {
   const purchases = await Purchase.find({ user: userId })
@@ -17,10 +18,13 @@ export const listCustomerItemsService = async (userId) => {
       description: p.item.description,
       path: p.item.imagePath,
       purchasedAt: p.createdAt,
+      quantity: p.quantity, // Add this line
+      priceAtPurchase: p.priceAtPurchase, // Might be useful too
     }));
 };
 
-export const createPurchaseService = async (userId, itemId) => {
+
+export const createPurchaseService = async (userId, itemId, quantity = 1) => {
   const item = await Item.findById(itemId);
 
   if (!item) {
@@ -29,40 +33,65 @@ export const createPurchaseService = async (userId, itemId) => {
     throw err;
   }
 
-  const purchase = await Purchase.create({
-    user: userId,
-    item: item._id,
-    priceAtPurchase: item.price,
-  });
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  
+  try {
+    // Always create a new purchase record (don't merge)
+    const purchase = await Purchase.create([{
+      user: userId,
+      item: item._id,
+      quantity: quantity,
+      priceAtPurchase: item.price,
+    }], { session });
+    
+    // Update item sell count
+    await Item.updateOne(
+      { _id: itemId },
+      { $inc: { sellCount: quantity } }
+    ).session(session);
 
-  await Item.updateOne(
-    { _id: itemId },
-    { $inc: { sellCount: 1 } }
-  );
-
-  return purchase;
+    await session.commitTransaction();
+    return purchase[0]; // create() returns an array
+    
+  } catch (error) {
+    await session.abortTransaction();
+    throw error;
+  } finally {
+    session.endSession();
+  }
 };
 
 export const cancelPurchaseService = async (userId, purchaseId) => {
-  const deleted = await Purchase.findOneAndDelete({
-    _id: purchaseId,
-    user: userId,
-  });
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  
+  try {
+    const purchase = await Purchase.findOneAndDelete({
+      _id: purchaseId,
+      user: userId,
+    }).session(session);
 
-  if (!deleted) {
-    const err = new Error("Purchase not found.");
-    err.status = 404;
-    throw err;
-  }
+    if (!purchase) {
+      const err = new Error("Purchase not found.");
+      err.status = 404;
+      throw err;
+    }
 
-  const item = await Item.findById(deleted.item);
-
-  if (item && item.sellCount > 0) {
+    // Update item sell count
     await Item.updateOne(
-      { _id: itemId },
-      { $inc: { sellCount: -1 } }
-    );
-  }
+      { _id: purchase.item, sellCount: { $gt: 0 } },
+      { $inc: { sellCount: -purchase.quantity } }
+    ).session(session);
 
-  return deleted;
+    await session.commitTransaction();
+    return purchase;
+    
+  } catch (error) {
+    await session.abortTransaction();
+    throw error;
+  } finally {
+    session.endSession();
+  }
 };
+

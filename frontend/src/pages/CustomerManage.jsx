@@ -12,8 +12,6 @@ const CustomerManage = () => {
     const fetchPurchases = async () => {
       try {
         const response = await protectedFetch("/api/purchases");
-        //console.log(response)
-
 
         if (response.status === 401) {
           window.location.href = "/login";
@@ -92,18 +90,33 @@ const CustomerManage = () => {
               key={item.id}
               className="flex justify-between rounded-xl border border-[#1f2937] bg-[#101621] p-4"
             >
-              <div>
-                <p className="text-sm font-semibold text-slate-100">
-                  {item.name}
-                </p>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-slate-100">
+                    {item.name}
+                  </p>
+                  {item.quantity > 1 && (
+                    <span className="text-xs bg-[#1f2937] text-slate-400 px-2 py-1 rounded-full">
+                      x{item.quantity}
+                    </span>
+                  )}
+                </div>
                 <p className="text-xs text-slate-400">
                   {item.location} • ${item.price}
+                  {item.quantity > 1 && (
+                    <span className="ml-1">
+                      (${(item.price * item.quantity).toFixed(2)} total)
+                    </span>
+                  )}
+                </p>
+                <p className="text-xs text-slate-500 mt-1">
+                  Purchased: {new Date(item.purchasedAt).toLocaleDateString()}
                 </p>
               </div>
               <button
                 onClick={() => handleCancel(item.id)}
                 disabled={loadingId === item.id}
-                className="rounded-full border border-[#2a3442] px-3 py-1 text-xs font-semibold text-slate-400 hover:border-red-500 hover:text-red-400 disabled:opacity-50"
+                className="rounded-full border border-[#2a3442] px-3 py-1 text-xs font-semibold text-slate-400 hover:border-red-500 hover:text-red-400 disabled:opacity-50 self-center"
               >
                 {loadingId === item.id ? "Canceling..." : "Cancel"}
               </button>
