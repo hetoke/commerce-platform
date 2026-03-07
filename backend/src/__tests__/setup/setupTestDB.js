@@ -4,12 +4,6 @@ import { MongoMemoryServer } from "mongodb-memory-server";
 import { runSeed } from "../../scripts/runSeed.js";
 import dotenv from "dotenv";
 import path from "path";
-import { fileURLToPath } from "url";
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-console.log("SETUP DIR:", __dirname);
-console.log("ENV PATH:", path.resolve(__dirname, "../../../.env"));
-console.log("CWD:", process.cwd());
 
 dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
