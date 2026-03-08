@@ -67,4 +67,9 @@ app.use("/api/account", accountRoutes);
 app.use("/api/purchases", purchaseRoutes);
 app.use("/health", healthRouter);
 
+app.get(/^\/(?!api).*/, (req, res) => {
+  res.sendFile(path.join(buildPath, "index.html"));
+});
+
+
 export default app;
