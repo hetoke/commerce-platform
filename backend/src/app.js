@@ -4,7 +4,6 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./config/swagger.js";
-import path from "path";
 
 import authRoutes from "./routes/authRoutes.js";
 import itemsRoutes from "./routes/itemRoutes.js";
@@ -15,9 +14,18 @@ import purchaseRoutes from "./routes/purchaseRoutes.js";
 
 import healthRouter from "./routes/health.js";
 
+import path from "path";
+import { fileURLToPath } from "url";
 
 const app = express();
 
+
+
+// Replace __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Now you can use __dirname
 const buildPath = path.join(__dirname, "../frontend/dist");
 app.use(express.static(buildPath));
 
