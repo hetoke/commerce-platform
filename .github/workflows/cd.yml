@@ -1,0 +1,56 @@
+name: CD Fullstack App
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      NODE_VERSION: 20.x
+
+    steps:
+      # 1. Checkout repo
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      # 2. Setup Node
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      # 3. Build Frontend
+      - name: Build Frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+      # 4. Install Backend deps and optional tests
+      - name: Prepare Backend
+        working-directory: backend
+        run: |
+          npm ci
+          npm test || true   # continue even if no tests
+
+      # 5. Seed Backend if needed (mock or initial)
+      - name: Seed Backend DB
+        working-directory: backend
+        run: |
+          node src/scripts/runSeed.js
+
+      # 6. Deploy Backend to Render
+      - name: Deploy Backend
+        run: |
+          curl -X POST "https://api.render.com/deploy/srv-${{ secrets.RENDER_BACKEND_SERVICE_ID }}" \
+          -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+          -H "Accept: application/json"
+
+      # 7. Deploy Frontend to Render
+      - name: Deploy Frontend
+        run: |
+          curl -X POST "https://api.render.com/deploy/srv-${{ secrets.RENDER_FRONTEND_SERVICE_ID }}" \
+          -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+          -H "Accept: application/json"

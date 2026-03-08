@@ -12,6 +12,8 @@ import accountRoutes from "./routes/accountRoutes.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
 import purchaseRoutes from "./routes/purchaseRoutes.js";
 
+import healthRouter from "./routes/healthRouter.js";
+
 
 const app = express();
 
@@ -38,5 +40,6 @@ app.use("/api/items", reviewRoutes);
 app.use("/api/uploads", uploadRoutes);
 app.use("/api/account", accountRoutes);
 app.use("/api/purchases", purchaseRoutes);
+app.use("/health", healthRouter);
 
 export default app;
