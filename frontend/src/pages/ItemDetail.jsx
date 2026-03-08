@@ -8,7 +8,6 @@ import Toast from "../components/Toast.jsx"
 import { useAuth } from "../context/AuthContext";
 import { publicFetch, protectedFetch } from "../api/api.js"
 
-
 const ItemDetail = () => {
   const { itemId } = useParams();
   const { user, authLoading } = useAuth();
@@ -20,6 +19,7 @@ const ItemDetail = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
   const [toast, setToast] = useState(null);
+  const [quantity, setQuantity] = useState(1); // Add quantity state
 
   useEffect(() => {
     if (!loading) {
@@ -47,19 +47,11 @@ const ItemDetail = () => {
       }
     };
 
-
     fetchData();
   }, [itemId]);
 
-
-
-
-
   if (loading || authLoading) return <LoadingScreen />;
   if (!item) return <div className="p-6 text-slate-400">Item not found</div>;
-
-  
-
 
   const buyHandler = async (e) => {
     e.preventDefault();
@@ -71,13 +63,20 @@ const ItemDetail = () => {
         method: "POST",
         body: JSON.stringify({
           itemId: item.id,
+          quantity: quantity, // Include quantity
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Purchase failed.");
+      if (!res.ok) {
+        if (res.status === 409) {
+          throw new Error("Item already purchased.");
+        }
+        throw new Error(data.message || "Purchase failed.");
+      }
 
-      setItem((prev) => ({ ...prev, sellCount: (prev.sellCount || 0) + 1 }));
-      setToast({ message: "Purchase successful!", type: "success" });
+      setItem((prev) => ({ ...prev, sellCount: (prev.sellCount || 0) + quantity }));
+      setToast({ message: `${quantity} item(s) purchased successfully!`, type: "success" });
+      setQuantity(1); // Reset quantity after purchase
     } catch (err) {
       setToast({ message: err.message, type: "error" });
     } finally {
@@ -133,7 +132,6 @@ const ItemDetail = () => {
     : "https://images.unsplash.com/photo-1503602642458-232111445657?w=1200&q=80";
 
   return (
-    
     <div className="max-w-6xl mx-auto p-6 text-slate-200">
       {toast && (
         <Toast
@@ -172,17 +170,41 @@ const ItemDetail = () => {
 
           <div className="text-2xl font-semibold">
             <Typewriter text={"$" + item.price} />
-            
           </div>
 
           <div className="text-sm uppercase tracking-wide text-slate-500">
             {item.location}
           </div>
 
-          <button className="mt-4 px-6 py-2 rounded-full bg-[#6f7cff] text-black font-semibold hover:opacity-90 transition"
-            onClick={buyHandler}>
-            Buy Now
-          </button>
+          {/* Quantity Selector + Buy Button */}
+          <div className="flex items-center gap-4 mt-4">
+            <div className="flex items-center border border-[#2a3442] rounded-full">
+              <button
+                type="button"
+                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                className="px-3 py-1 text-slate-400 hover:text-white"
+                disabled={quantity <= 1}
+              >
+                -
+              </button>
+              <span className="px-3 py-1">{quantity}</span>
+              <button
+                type="button"
+                onClick={() => setQuantity(quantity + 1)}
+                className="px-3 py-1 text-slate-400 hover:text-white"
+              >
+                +
+              </button>
+            </div>
+
+            <button 
+              className="px-6 py-2 rounded-full bg-[#6f7cff] text-black font-semibold hover:opacity-90 transition disabled:opacity-50"
+              onClick={buyHandler}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Buying..." : `Buy Now ($${(item.price * quantity).toFixed(2)})`}
+            </button>
+          </div>
 
           <div className="border-t border-[#1f2937] pt-6">
             <h2 className="text-lg font-semibold mb-2">Overview</h2>
@@ -191,6 +213,8 @@ const ItemDetail = () => {
         </div>
       </div>
 
+      {/* Rest of your component remains the same... */}
+      
       {/* Detailed Description */}
       <div className="mt-12 border-t border-[#1f2937] pt-8">
         <h2 className="text-xl font-semibold mb-4">
@@ -203,13 +227,14 @@ const ItemDetail = () => {
         </div>
       </div>
 
-      {/* ---------- NEW: Add Review Form ---------- */}
+      {/* Reviews section remains unchanged... */}
+      
+      {/* Add Review Form */}
       <div className="mt-12 border-t border-[#1f2937] pt-8">
         <h2 className="text-xl font-semibold mb-6">
           Write a Review
         </h2>
 
-        {/* If the user is NOT logged in → show a prompt */}
         {!user ? (
           <p className="text-slate-500">
             <a
@@ -222,7 +247,6 @@ const ItemDetail = () => {
           </p>
         ) : (
           <form onSubmit={handleSubmitReview} className="space-y-4 max-w-xl">
-            {/* ★‑rating selector */}
             <div className="flex items-center gap-1">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
@@ -241,7 +265,6 @@ const ItemDetail = () => {
               ))}
             </div>
 
-            {/* Comment textarea */}
             <textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}
@@ -255,7 +278,6 @@ const ItemDetail = () => {
               required
             />
 
-            {/* Submit button + error / loading feedback */}
             <div className="flex items-center gap-4">
               <button
                 type="submit"
@@ -275,6 +297,8 @@ const ItemDetail = () => {
           </form>
         )}
       </div>
+
+      {/* Reviews List */}
       <div className="mt-12 border-t border-[#1f2937] pt-8">
         <h2 className="text-xl font-semibold mb-6">
           Reviews ({reviews.length})

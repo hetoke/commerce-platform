@@ -26,18 +26,25 @@ const ItemCard = ({ item, onToast }) => {
         method: "POST",
         body: JSON.stringify({
           itemId: item.id,
+          quantity: 1
         }),
       });
+      
       const data = await res.json();
 
       if (!res.ok) {
-        onToast?.({ message: data.message || "Failed to purchase", type: "error" });
+        // Handle specific error cases
+        if (res.status === 409) {
+          onToast?.({ message: "Item already purchased", type: "warning" });
+        } else {
+          onToast?.({ message: data.message || "Failed to purchase", type: "error" });
+        }
       } else {
-        onToast?.({ message: "Added to cart", type: "success" });
-        // optionally update sellCount if parent passed a setter
+        onToast?.({ message: "Item purchased successfully!", type: "success" });
+        // Optionally refresh the page or update context
       }
-    } catch {
-      onToast?.({ message: "Network error", type: "error" });
+    } catch (error) {
+      onToast?.({ message: "Network error - please try again", type: "error" });
     } finally {
       setIsBuying(false);
     }
@@ -94,7 +101,7 @@ const ItemCard = ({ item, onToast }) => {
         <div className="flex items-center justify-between pt-2">
           <span className="text-lg font-semibold text-slate-100">
             {typeof item.price === "number"
-              ? `$${item.price}`
+              ? `$${item.price.toFixed(2)}`
               : item.price}
           </span>
 
@@ -114,6 +121,23 @@ const ItemCard = ({ item, onToast }) => {
       </div>
     </Link>
   );
+};
+
+// Add PropTypes for better development experience
+ItemCard.propTypes = {
+  item: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+    location: PropTypes.string,
+    description: PropTypes.string,
+    path: PropTypes.string,
+    image: PropTypes.string,
+    averageRating: PropTypes.number,
+    reviewCount: PropTypes.number,
+    sellCount: PropTypes.number,
+    price: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+  }).isRequired,
+  onToast: PropTypes.func,
 };
 
 export default ItemCard;
