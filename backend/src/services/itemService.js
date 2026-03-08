@@ -6,7 +6,7 @@ export const listItems = async () => {
     .select(
       "name price imagePath location description totalRating averageRating reviewCount sellCount imagePath createdAt"
     )
-    .sort({ createdAt: -1 });
+    .sort({ createdAt: 1 });
 };
 
 export const getItemDetails = async (itemId) => {
