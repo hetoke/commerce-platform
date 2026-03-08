@@ -22,7 +22,7 @@ app.use(cookieParser());
 
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://commerce-platform.onrender.com"
+  "https://commerce-platform-fe.onrender.com"
 ];
 
 app.use(cors({
