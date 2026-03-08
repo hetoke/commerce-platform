@@ -2,23 +2,38 @@
 const API_BASE = import.meta.env.VITE_API_BASE || ""; // set in .env
 
 // Protected fetch
+let csrfTokenCache = null;
+
 export const protectedFetch = async (path, options = {}) => {
   const url = `${API_BASE}${path}`;
-  const makeRequest = async () => {
-    return fetch(url, {
+
+  // Ensure CSRF token exists
+  if (!csrfTokenCache) {
+    const tokenRes = await fetch(`${API_BASE}/api/auth/csrf-token`, {
+      credentials: "include",
+    });
+    if (tokenRes.ok) {
+      const data = await tokenRes.json();
+      csrfTokenCache = data.csrfToken;
+    }
+  }
+
+  const makeRequest = async () =>
+    fetch(url, {
       ...options,
-      credentials: "include", // send cookies
+      credentials: "include",
       headers: {
         ...options.headers,
+        "X-CSRF-Token": csrfTokenCache, // send CSRF token
         ...(options.body && !(options.body instanceof FormData) && {
           "Content-Type": "application/json",
         }),
       },
     });
-  };
 
   let response = await makeRequest();
 
+  // refresh token if 401
   if (response.status === 401) {
     const refreshRes = await fetch(`${API_BASE}/api/auth/refresh`, {
       method: "POST",
@@ -28,6 +43,15 @@ export const protectedFetch = async (path, options = {}) => {
     if (!refreshRes.ok) {
       logout();
       return refreshRes;
+    }
+
+    // Re-fetch CSRF token
+    const tokenRes = await fetch(`${API_BASE}/api/auth/csrf-token`, {
+      credentials: "include",
+    });
+    if (tokenRes.ok) {
+      const data = await tokenRes.json();
+      csrfTokenCache = data.csrfToken;
     }
 
     response = await makeRequest();

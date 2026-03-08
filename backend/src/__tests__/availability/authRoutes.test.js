@@ -1,227 +1,185 @@
-import { describe, it, expect, beforeAll } from 'vitest'
-import request from 'supertest'
-import app from '../../app.js'
+// tests/availability/authRoutes.test.js
+import { describe, it, expect, beforeAll } from 'vitest';
+import { createCsrfAgent } from '../helpers/csrfAgent.js';
 
-describe('POST /api/auth/google', () => {
-  const agent = request.agent(app)
-
-  beforeAll(async () => {
-    await agent.post('/api/auth/login').send({ identifier: 'bob', password: 'customer123' })
-  })
-
-  it('returns 401 when credential is missing', async () => {
-    const res = await agent
-      .post('/api/auth/google')
-      .send({})
-
-    expect(res.status).toBe(401)
-  })
-
-  it('returns 401 when credential is not a string', async () => {
-    const res = await agent
-      .post('/api/auth/google')
-      .send({ credential: 12345 })
-
-    expect(res.status).toBe(401)
-  })
-})
-
-describe('POST /api/auth/login', () => {
-  const agent = request.agent(app)
+describe('Auth routes', () => {
+  let csrfAgent;
 
   beforeAll(async () => {
-    await agent.post('/api/auth/login').send({ identifier: 'bob', password: 'customer123' })
-  })
+    // Initialize CSRF-aware agent
+    csrfAgent = createCsrfAgent();
 
-  it('returns 400 when identifier is missing', async () => {
-    const res = await agent
+    // Login first (no CSRF required)
+    const res = await csrfAgent.agent
       .post('/api/auth/login')
-      .send({ password: 'password123' })
+      .send({ identifier: 'bob', password: 'customer123' });
+    expect(res.status).toBeLessThan(400);
+  });
 
-    expect(res.status).toBe(400)
-  })
+  // -----------------------------
+  // LOGOUT
+  // -----------------------------
+  describe('POST /api/auth/logout', () => {
+    it('always succeeds and ignores invalid fields', async () => {
+      const config = await csrfAgent.buildCsrfRequest('post', '/api/auth/logout');
+      const res = await csrfAgent.agent[config.method](config.url)
+        .set('X-CSRF-Token', config.token)
+        .send({ invalidField: true });
+      expect(res.status).toBe(200);
+    });
+  });
 
-  it('returns 400 when password is missing', async () => {
-    const res = await agent
-      .post('/api/auth/login')
-      .send({ identifier: 'testuser' })
+  // -----------------------------
+  // SIGNUP
+  // -----------------------------
+  describe('POST /api/auth/signup', () => {
+    it('returns 400 when email is missing', async () => {
+      const config = await csrfAgent.buildCsrfRequest('post', '/api/auth/signup');
+      const res = await csrfAgent.agent[config.method](config.url)
+        .set('X-CSRF-Token', config.token)
+        .send({ username: 'newuser', password: 'password123' });
+      expect(res.status).toBe(400);
+    });
 
-    expect(res.status).toBe(400)
-  })
+    it('returns 400 when username is missing', async () => {
+      const config = await csrfAgent.buildCsrfRequest('post', '/api/auth/signup');
+      const res = await csrfAgent.agent[config.method](config.url)
+        .set('X-CSRF-Token', config.token)
+        .send({ email: 'test@example.com', password: 'password123' });
+      expect(res.status).toBe(400);
+    });
 
-  it('returns 400 when identifier is not a string', async () => {
-    const res = await agent
-      .post('/api/auth/login')
-      .send({ identifier: 123, password: 'password123' })
+    it('returns 400 when password is missing', async () => {
+      const config = await csrfAgent.buildCsrfRequest('post', '/api/auth/signup');
+      const res = await csrfAgent.agent[config.method](config.url)
+        .set('X-CSRF-Token', config.token)
+        .send({ email: 'test@example.com', username: 'newuser' });
+      expect(res.status).toBe(400);
+    });
 
-    expect(res.status).toBe(400)
-  })
+    it('returns 400 when email format is invalid', async () => {
+      const config = await csrfAgent.buildCsrfRequest('post', '/api/auth/signup');
+      const res = await csrfAgent.agent[config.method](config.url)
+        .set('X-CSRF-Token', config.token)
+        .send({ email: 'invalid-email', username: 'newuser', password: 'password123' });
+      expect(res.status).toBe(400);
+    });
 
-  it('returns 400 when password is not a string', async () => {
-    const res = await agent
-      .post('/api/auth/login')
-      .send({ identifier: 'testuser', password: 123 })
+    it('returns 400 when username too short', async () => {
+      const config = await csrfAgent.buildCsrfRequest('post', '/api/auth/signup');
+      const res = await csrfAgent.agent[config.method](config.url)
+        .set('X-CSRF-Token', config.token)
+        .send({ email: 'test@example.com', username: 'ab', password: 'password123' });
+      expect(res.status).toBe(400);
+    });
 
-    expect(res.status).toBe(400)
-  })
-})
+    it('returns 400 when password too short', async () => {
+      const config = await csrfAgent.buildCsrfRequest('post', '/api/auth/signup');
+      const res = await csrfAgent.agent[config.method](config.url)
+        .set('X-CSRF-Token', config.token)
+        .send({ email: 'test@example.com', username: 'newuser', password: '123' });
+      expect(res.status).toBe(400);
+    });
 
-describe('POST /api/auth/logout', () => {
-  const agent = request.agent(app)
+    it('returns 400 when email is not a string', async () => {
+      const config = await csrfAgent.buildCsrfRequest('post', '/api/auth/signup');
+      const res = await csrfAgent.agent[config.method](config.url)
+        .set('X-CSRF-Token', config.token)
+        .send({ email: 123, username: 'newuser', password: 'password123' });
+      expect(res.status).toBe(400);
+    });
 
-  beforeAll(async () => {
-    await agent.post('/api/auth/login').send({ identifier: 'bob', password: 'customer123' })
-  })
+    it('returns 400 when username is not a string', async () => {
+      const config = await csrfAgent.buildCsrfRequest('post', '/api/auth/signup');
+      const res = await csrfAgent.agent[config.method](config.url)
+        .set('X-CSRF-Token', config.token)
+        .send({ email: 'test@example.com', username: 123, password: 'password123' });
+      expect(res.status).toBe(400);
+    });
 
-  it('always succeeds and does not validate input', async () => {
-    const res = await agent
-      .post('/api/auth/logout')
-      .send({ invalidField: true })
+    it('returns 400 when password is not a string', async () => {
+      const config = await csrfAgent.buildCsrfRequest('post', '/api/auth/signup');
+      const res = await csrfAgent.agent[config.method](config.url)
+        .set('X-CSRF-Token', config.token)
+        .send({ email: 'test@example.com', username: 'newuser', password: 123 });
+      expect(res.status).toBe(400);
+    });
+  });
 
-    expect(res.status).toBe(200)
-  })
-})
+  // -----------------------------
+  // GOOGLE LOGIN
+  // -----------------------------
+  describe('POST /api/auth/google', () => {
+    it('returns 401 when credential is missing', async () => {
+      const config = await csrfAgent.buildCsrfRequest('post', '/api/auth/google');
+      const res = await csrfAgent.agent[config.method](config.url)
+        .set('X-CSRF-Token', config.token)
+        .send({});
+      expect(res.status).toBe(401);
+    });
 
-describe('POST /api/auth/signup', () => {
-  const agent = request.agent(app)
+    it('returns 401 when credential is not a string', async () => {
+      const config = await csrfAgent.buildCsrfRequest('post', '/api/auth/google');
+      const res = await csrfAgent.agent[config.method](config.url)
+        .set('X-CSRF-Token', config.token)
+        .send({ credential: 12345 });
+      expect(res.status).toBe(401);
+    });
+  });
 
-  beforeAll(async () => {
-    await agent.post('/api/auth/login').send({ identifier: 'bob', password: 'customer123' })
-  })
+  // -----------------------------
+  // LOGIN (no CSRF)
+  // -----------------------------
+  describe('POST /api/auth/login', () => {
+    it('returns 400 when identifier is missing', async () => {
+      const res = await csrfAgent.agent
+        .post('/api/auth/login')
+        .send({ password: 'password123' });
+      expect(res.status).toBe(400);
+    });
 
-  it('returns 400 when email is missing', async () => {
-    const res = await agent
-      .post('/api/auth/signup')
-      .send({
-        username: 'newuser',
-        password: 'password123',
-      })
+    it('returns 400 when password is missing', async () => {
+      const res = await csrfAgent.agent
+        .post('/api/auth/login')
+        .send({ identifier: 'testuser' });
+      expect(res.status).toBe(400);
+    });
 
-    expect(res.status).toBe(400)
-  })
+    it('returns 400 when identifier is not a string', async () => {
+      const res = await csrfAgent.agent
+        .post('/api/auth/login')
+        .send({ identifier: 123, password: 'password123' });
+      expect(res.status).toBe(400);
+    });
 
-  it('returns 400 when username is missing', async () => {
-    const res = await agent
-      .post('/api/auth/signup')
-      .send({
-        email: 'test@example.com',
-        password: 'password123'
-      })
+    it('returns 400 when password is not a string', async () => {
+      const res = await csrfAgent.agent
+        .post('/api/auth/login')
+        .send({ identifier: 'testuser', password: 123 });
+      expect(res.status).toBe(400);
+    });
+  });
 
-    expect(res.status).toBe(400)
-  })
+  // -----------------------------
+  // REFRESH
+  // -----------------------------
+  describe('POST /api/auth/refresh', () => {
+    it('returns 403 when no refresh token provided', async () => {
+      const res = await csrfAgent.agent
+        .post('/api/auth/refresh')
+        .send({});
+      expect(res.status).toBe(403);
+    });
+  });
 
-  it('returns 400 when password is missing', async () => {
-    const res = await agent
-      .post('/api/auth/signup')
-      .send({
-        email: 'test@example.com',
-        username: 'newuser'
-      })
-
-    expect(res.status).toBe(400)
-  })
-
-  it('returns 400 when email is invalid format', async () => {
-    const res = await agent
-      .post('/api/auth/signup')
-      .send({
-        email: 'invalid-email',
-        username: 'newuser',
-        password: 'password123'
-      })
-
-    expect(res.status).toBe(400)
-  })
-
-  it('returns 400 when username is too short', async () => {
-    const res = await agent
-      .post('/api/auth/signup')
-      .send({
-        email: 'test@example.com',
-        username: 'ab',
-        password: 'password123'
-      })
-
-    expect(res.status).toBe(400)
-  })
-
-  it('returns 400 when password is too short', async () => {
-    const res = await agent
-      .post('/api/auth/signup')
-      .send({
-        email: 'test@example.com',
-        username: 'newuser',
-        password: '123'
-      })
-
-    expect(res.status).toBe(400)
-  })
-
-  it('returns 400 when email is not a string', async () => {
-    const res = await agent
-      .post('/api/auth/signup')
-      .send({
-        email: 123,
-        username: 'newuser',
-        password: 'password123'
-      })
-
-    expect(res.status).toBe(400)
-  })
-
-  it('returns 400 when username is not a string', async () => {
-    const res = await agent
-      .post('/api/auth/signup')
-      .send({
-        email: 'test@example.com',
-        username: 123,
-        password: 'password123'
-      })
-
-    expect(res.status).toBe(400)
-  })
-
-  it('returns 400 when password is not a string', async () => {
-    const res = await agent
-      .post('/api/auth/signup')
-      .send({
-        email: 'test@example.com',
-        username: 'newuser',
-        password: 123
-      })
-
-    expect(res.status).toBe(400)
-  })
-})
-
-describe('POST /api/auth/refresh', () => {
-  const agent = request.agent(app)
-
-  beforeAll(async () => {
-    await agent.post('/api/auth/login').send({ identifier: 'bob', password: 'customer123' })
-  })
-
-  it('returns 403 when no refresh token provided', async () => {
-    const res = await request(app)
-      .post('/api/auth/refresh')
-      .send({})
-
-    expect(res.status).toBe(403)
-  })
-})
-
-describe('GET /api/auth/me', () => {
-  const agent = request.agent(app)
-
-  beforeAll(async () => {
-    await agent.post('/api/auth/login').send({ identifier: 'bob', password: 'customer123' })
-  })
-
-  it('returns 401 when not authenticated', async () => {
-    const res = await request(app)
-      .get('/api/auth/me')
-
-    expect(res.status).toBe(401)
-  })
-})
+  // -----------------------------
+  // ME
+  // -----------------------------
+  describe('GET /api/auth/me', () => {
+    it('returns 401 when not authenticated', async () => {
+      const res = await csrfAgent.agent
+        .get('/api/auth/me');
+      expect(res.status).toBe(401);
+    });
+  });
+});

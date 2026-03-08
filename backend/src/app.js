@@ -14,20 +14,8 @@ import purchaseRoutes from "./routes/purchaseRoutes.js";
 
 import healthRouter from "./routes/health.js";
 
-import path from "path";
-import { fileURLToPath } from "url";
 
 const app = express();
-
-
-
-// Replace __dirname
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Now you can use __dirname
-const buildPath = path.join(__dirname, "../frontend/dist");
-app.use(express.static(buildPath));
 
 app.use(express.json());
 app.use(cookieParser());
@@ -66,10 +54,5 @@ app.use("/api/uploads", uploadRoutes);
 app.use("/api/account", accountRoutes);
 app.use("/api/purchases", purchaseRoutes);
 app.use("/health", healthRouter);
-
-app.get(/^\/(?!api).*/, (req, res) => {
-  res.sendFile(path.join(buildPath, "index.html"));
-});
-
 
 export default app;

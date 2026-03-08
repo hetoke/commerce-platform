@@ -4,6 +4,7 @@ import {
   upsertReview,
 } from "../controllers/reviewController.js";
 import { requireAuth } from "../middleware/auth.js";
+import { csrfProtection } from "../middleware/csrf.js";
 import {
   param,
   body,
@@ -78,7 +79,6 @@ router.get("/:itemId/reviews", getItemReviews);
  */
 router.post(
   "/:itemId/reviews",
-  requireAuth,
   [
     param("itemId").isMongoId(),
     body("rating")
@@ -98,6 +98,8 @@ router.post(
       next();
     }
   ],
+  requireAuth,
+  csrfProtection,
   upsertReview
 );
 

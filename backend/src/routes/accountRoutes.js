@@ -1,6 +1,7 @@
 import express from "express";
 import { body, validationResult } from "express-validator";
 import { requireAuth } from "../middleware/auth.js";
+import { csrfProtection } from "../middleware/csrf.js";
 import {
   updateUsername,
   changePassword,
@@ -52,7 +53,6 @@ const router = express.Router();
  */
 router.put(
   "/update-username",
-  requireAuth,
   [
     body("newUsername")
       .trim()
@@ -70,6 +70,8 @@ router.put(
       next();
     }
   ],
+  requireAuth,
+  csrfProtection,
   updateUsername
 );
 
@@ -111,7 +113,6 @@ router.put(
  */
 router.put(
   "/change-password",
-  requireAuth,
   [
     body("currentPassword")
       .notEmpty()
@@ -131,6 +132,8 @@ router.put(
       next();
     }
   ],
+  requireAuth,
+  csrfProtection,
   changePassword
 );
 

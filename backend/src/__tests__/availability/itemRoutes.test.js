@@ -1,105 +1,118 @@
-import { describe, it, expect, beforeAll } from 'vitest'
-import request from 'supertest'
-import app from '../../app.js'
+// tests/availability/itemRoutes.test.js
+import { describe, it, expect, beforeAll } from 'vitest';
+import { createCsrfAgent } from '../helpers/csrfAgent.js';
 
-
-
-
-describe('GET /api/items/:itemId', () => {
-  const agent = request.agent(app)
+describe('Item routes', () => {
+  let csrfAgent;
+  let agent; // Declare agent separately
 
   beforeAll(async () => {
-    await agent.post('/api/auth/login').send({ identifier: 'bob', password: 'customer123' })
-  })
+    // Initialize CSRF-aware agent
+    csrfAgent = createCsrfAgent();
+    agent = csrfAgent.agent; // Assign agent here after csrfAgent is created
+  });
 
-  it('returns 400 when itemId is invalid', async () => {
-    const res = await agent.get('/api/items/invalid-id!')
-    expect(res.status).toBe(400)
-  })
-})
+  // -----------------------------
+  // GET /api/items/:itemId
+  // -----------------------------
+  describe('GET /api/items/:itemId', () => {
+    beforeAll(async () => {
+      await agent.post('/api/auth/login').send({ identifier: 'bob', password: 'customer123' });
+    });
 
-describe('POST /api/items', () => {
-  const agent = request.agent(app)
+    it('returns 400 when itemId is invalid', async () => {
+      const res = await agent.get('/api/items/invalid-id!');
+      expect(res.status).toBe(400);
+    });
+  });
 
-  beforeAll(async () => {
-    await agent.post('/api/auth/login').send({ identifier: 'admin', password: 'admin123' })
-  })
+  // -----------------------------
+  // POST /api/items
+  // -----------------------------
+  describe('POST /api/items', () => {
+    beforeAll(async () => {
+      await csrfAgent.agent.post('/api/auth/login').send({ identifier: 'admin', password: 'admin123' });
+    });
 
-  it('returns 400 when required field "name" is missing', async () => {
-    const res = await agent
-      .post('/api/items')
-      .send({ description: 'test item' })
+    it('returns 400 when required field "name" is missing', async () => {
+      const config = await csrfAgent.buildCsrfRequest('post', '/api/items');
+      const res = await csrfAgent.agent[config.method](config.url)
+        .set('X-CSRF-Token', config.token)
+        .send({ description: 'test item' });
+      expect(res.status).toBe(400);
+    });
 
-    expect(res.status).toBe(400)
-  })
+    it('returns 400 when request body is malformed', async () => {
+      const config = await csrfAgent.buildCsrfRequest('post', '/api/items');
+      const res = await csrfAgent.agent[config.method](config.url)
+        .set('X-CSRF-Token', config.token)
+        .send({});
+      expect(res.status).toBe(400);
+    });
+  });
 
-  it('returns 400 when request body is malformed', async () => {
-    const res = await agent
-      .post('/api/items')
-      .send({})
+  // -----------------------------
+  // PUT /api/items/:itemId
+  // -----------------------------
+  describe('PUT /api/items/:itemId', () => {
+    beforeAll(async () => {
+      await csrfAgent.agent.post('/api/auth/login').send({ identifier: 'admin', password: 'admin123' });
+    });
 
-    expect(res.status).toBe(400)
-  })
-})
+    it('returns 400 when itemId is invalid', async () => {
+      const config = await csrfAgent.buildCsrfRequest('put', '/api/items/invalid-id!');
+      const res = await csrfAgent.agent[config.method](config.url)
+        .set('X-CSRF-Token', config.token)
+        .send({ name: 'updatedName' });
+      expect(res.status).toBe(400);
+    });
 
-describe('PUT /api/items/:itemId', () => {
-  const agent = request.agent(app)
+    it('returns 400 when request body is empty', async () => {
+      const config = await csrfAgent.buildCsrfRequest('put', '/api/items/123');
+      const res = await csrfAgent.agent[config.method](config.url)
+        .set('X-CSRF-Token', config.token)
+        .send({});
+      expect(res.status).toBe(400);
+    });
 
-  beforeAll(async () => {
-    await agent.post('/api/auth/login').send({ identifier: 'admin', password: 'admin123' })
-  })
+    it('returns 400 when name is too short', async () => {
+      const config = await csrfAgent.buildCsrfRequest('put', '/api/items/123');
+      const res = await csrfAgent.agent[config.method](config.url)
+        .set('X-CSRF-Token', config.token)
+        .send({ name: 'ab' });
+      expect(res.status).toBe(400);
+    });
 
-  it('returns 400 when itemId is invalid', async () => {
-    const res = await agent
-      .put('/api/items/invalid-id!')
-      .send({ name: 'updatedName' })
+    it('returns 400 when price is negative', async () => {
+      const config = await csrfAgent.buildCsrfRequest('put', '/api/items/123');
+      const res = await csrfAgent.agent[config.method](config.url)
+        .set('X-CSRF-Token', config.token)
+        .send({ price: -5 });
+      expect(res.status).toBe(400);
+    });
 
-    expect(res.status).toBe(400)
-  })
+    it('returns 400 when location is too short', async () => {
+      const config = await csrfAgent.buildCsrfRequest('put', '/api/items/123');
+      const res = await csrfAgent.agent[config.method](config.url)
+        .set('X-CSRF-Token', config.token)
+        .send({ location: 'a' });
+      expect(res.status).toBe(400);
+    });
+  });
 
-  it('returns 400 when request body is empty', async () => {
-    const res = await agent
-      .put('/api/items/123')
-      .send({})
+  // -----------------------------
+  // DELETE /api/items/:itemId
+  // -----------------------------
+  describe('DELETE /api/items/:itemId', () => {
+    beforeAll(async () => {
+      await csrfAgent.agent.post('/api/auth/login').send({ identifier: 'admin', password: 'admin123' });
+    });
 
-    expect(res.status).toBe(400)
-  })
-
-  it('returns 400 when name is too short', async () => {
-    const res = await agent
-      .put('/api/items/123')
-      .send({ name: 'ab' })
-
-    expect(res.status).toBe(400)
-  })
-
-  it('returns 400 when price is negative', async () => {
-    const res = await agent
-      .put('/api/items/123')
-      .send({ price: -5 })
-
-    expect(res.status).toBe(400)
-  })
-
-  it('returns 400 when location is too short', async () => {
-    const res = await agent
-      .put('/api/items/123')
-      .send({ location: 'a' })
-
-    expect(res.status).toBe(400)
-  })
-
-})
-
-describe('DELETE /api/items/:itemId', () => {
-  const agent = request.agent(app)
-
-  beforeAll(async () => {
-    await agent.post('/api/auth/login').send({ identifier: 'admin', password: 'admin123' })
-  })
-
-  it('returns 400 when itemId is invalid', async () => {
-    const res = await agent.delete('/api/items/invalid-id!')
-    expect(res.status).toBe(400)
-  })
-})
+    it('returns 400 when itemId is invalid', async () => {
+      const config = await csrfAgent.buildCsrfRequest('delete', '/api/items/invalid-id!');
+      const res = await csrfAgent.agent[config.method](config.url)
+        .set('X-CSRF-Token', config.token);
+      expect(res.status).toBe(400);
+    });
+  });
+});

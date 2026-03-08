@@ -1,5 +1,6 @@
 import express from "express";
 import { requireAuth, requireAdmin } from "../middleware/auth.js";
+import { csrfProtection } from "../middleware/csrf.js";
 import { upload } from "../config/multer.js";
 import { uploadImage } from "../controllers/uploadController.js";
 
@@ -56,6 +57,7 @@ router.post(
   "/image",
   requireAuth,
   requireAdmin,
+  csrfProtection,
   upload.single("image"),
   uploadImage
 );

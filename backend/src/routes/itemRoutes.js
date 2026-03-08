@@ -8,6 +8,7 @@ import {
 } from "../controllers/itemController.js";
 
 import { requireAdmin, requireAuth } from "../middleware/auth.js";
+import { csrfProtection } from "../middleware/csrf.js";
 import { param, body, validationResult } from "express-validator";
 
 const router = express.Router();
@@ -95,7 +96,7 @@ router.get("/:itemId", getItemDetails);
  *       '500':
  *         description: Internal server error
  */
-router.post("/", requireAuth, requireAdmin, createItem);
+router.post("/", requireAuth, requireAdmin, csrfProtection, createItem);
 
 
 
@@ -170,6 +171,7 @@ router.put(
   ],
   requireAuth,
   requireAdmin,
+  csrfProtection,
   updateItem
 )
 
@@ -226,7 +228,9 @@ router.delete(
       next();
     }
   ],
+  requireAuth,
   requireAdmin,
+  csrfProtection,
   deleteItem
 );
 

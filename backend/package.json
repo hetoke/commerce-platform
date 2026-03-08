@@ -9,7 +9,7 @@
     "test": "cross-env NODE_ENV=test vitest run",
     "seed": "node src/scripts/runSeed.js",
     "docs": "node src/scripts/generateAPIDocs.js",
-    "gen_testcases": "node src/scripts/generateTestCases.js", 
+    "gen_testcases": "node src/scripts/generateTestCases.js",
     "clean_tokens": "node src/scripts/cleanRefreshTokens.js",
     "dev": "nodemon src/server.js"
   },
@@ -21,6 +21,7 @@
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
+    "csurf": "^1.11.0",
     "dotenv": "^17.2.4",
     "express": "^5.2.1",
     "express-rate-limit": "^8.2.1",

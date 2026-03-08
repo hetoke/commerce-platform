@@ -9,9 +9,14 @@ import {
 } from "../controllers/authController.js";
 import { loginLimiter, signupLimiter } from "../middleware/rateLimitter.js";
 import { requireAuth } from "../middleware/auth.js";
+import { csrfProtection } from "../middleware/csrf.js";
 import { body, validationResult } from "express-validator";
 
 const router = express.Router();
+
+router.get("/csrf-token", csrfProtection, (req, res) => {
+  res.json({ csrfToken: req.csrfToken() });
+});
 
 /**
  * @swagger
@@ -39,7 +44,7 @@ const router = express.Router();
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post("/google", loginLimiter, googleAuth);
+router.post("/google",  loginLimiter, googleAuth);
 
 /**
  * @swagger
@@ -89,7 +94,7 @@ router.post("/login", loginLimiter, login);
  *             schema:
  *               $ref: '#/components/schemas/SuccessResponse'
  */
-router.post("/logout", logout);
+router.post("/logout", csrfProtection, logout);
 
 /**
  * @swagger
@@ -166,7 +171,7 @@ router.post(
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post("/refresh", refresh);
+router.post("/refresh", csrfProtection, refresh);
 
 /**
  * @swagger

@@ -6,6 +6,7 @@ import {
 } from "../controllers/purchaseController.js";
 import { requireAuth } from "../middleware/auth.js";
 import { param, body, validationResult } from "express-validator";
+import { csrfProtection } from "../middleware/csrf.js";
 
 const router = express.Router();
 
@@ -98,6 +99,7 @@ router.post(
     }
   ],
   requireAuth,
+  csrfProtection,
   createPurchase
 );
 
@@ -131,7 +133,6 @@ router.post(
  */
 router.delete(
   "/:purchaseId",
-  requireAuth,
   [
     param("purchaseId")
       .isMongoId()
@@ -145,6 +146,8 @@ router.delete(
       next();
     }
   ],
+  requireAuth,
+  csrfProtection,
   cancelPurchase
 );
 
