@@ -1,6 +1,6 @@
 import "./index.css";
 import React, { useEffect, useState } from "react";
-import Navbar from "./components/navbar.jsx";
+import Navbar from "./components/Navbar.jsx";
 import LoadingScreen from "./components/LoadingScreen.jsx";
 import Home from "./pages/Home.jsx";
 import About from "./pages/About.jsx";
