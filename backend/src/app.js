@@ -55,4 +55,10 @@ app.use("/api/account", accountRoutes);
 app.use("/api/purchases", purchaseRoutes);
 app.use("/health", healthRouter);
 
+app.use(express.static('dist'));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.resolve('dist/index.html'));
+});
+
 export default app;
