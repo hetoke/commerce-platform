@@ -163,6 +163,7 @@ cd backend && npm install
 cd ../frontend && npm install
 
 # Configure environment variables
+cp .env.example .env
 cd ../backend && cp .env.example .env
 
 # Start backend
