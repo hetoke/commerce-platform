@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { publicFetch } from "./api/api.js"
+import { publicFetch } from "../api/api.js"
 
 const Signup = () => {
   const { setUser } = useAuth();

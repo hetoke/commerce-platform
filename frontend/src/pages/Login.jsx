@@ -4,7 +4,7 @@ import { NavLink } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import { useAuth } from "../context/AuthContext.jsx";
-import { publicFetch } from "./api/api.js"
+import { publicFetch } from "../api/api.js"
 
 
 
