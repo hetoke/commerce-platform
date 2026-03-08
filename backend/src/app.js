@@ -4,6 +4,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./config/swagger.js";
+import path from "path";
 
 import authRoutes from "./routes/authRoutes.js";
 import itemsRoutes from "./routes/itemRoutes.js";
