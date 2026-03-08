@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 
 const router = express.Router();
 
-router.get("/health", async (req, res) => {
+router.get("/", async (req, res) => {
   try {
     // Optional: check MongoDB connection
     const dbState = mongoose.connection.readyState; // 1 = connected
