@@ -8,15 +8,6 @@ The project focuses on clean architecture, maintainability, and secure API desig
 
 ## Demo
 
-**Live Demo:** (add Render URL here)
-
-**Demo User Account:**
-- Username: `bob`
-- Password: `customer123`
-
-**Or**
-
-- Sign up instantly using **Google OAuth**
 
 Admin access is restricted to prevent abuse of the live demo.
 
