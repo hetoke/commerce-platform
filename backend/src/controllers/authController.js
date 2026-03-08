@@ -3,7 +3,7 @@ import { googleAuthService, loginService, logoutService, refreshService, signupS
 const cookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
-  sameSite: "none",
+  sameSite: "lax",
 };
 
 

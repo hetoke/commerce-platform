@@ -17,6 +17,9 @@ import healthRouter from "./routes/health.js";
 
 const app = express();
 
+const buildPath = path.join(__dirname, "../frontend/dist");
+app.use(express.static(buildPath));
+
 app.use(express.json());
 app.use(cookieParser());
 
