@@ -16,7 +16,9 @@ The project focuses on clean architecture, maintainability, and secure API desig
 <!-- Add screenshots below -->
 ## Screenshots
 
-> _Screenshots coming soon_
+![Storefront](screenshots/storefront.jpg)
+![Item Detail](screenshots/item-detail.jpg)
+![Admin Panel](screenshots/admin-panel.jpg)
 
 ## Features
 
