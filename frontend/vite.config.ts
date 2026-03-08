@@ -7,6 +7,7 @@ export default defineConfig({
   server: {
     host: true,
     cors: true,
+    historyApiFallback: true, // Add this for SPA routing
     allowedHosts: [
       'localhost',
       '.ngrok-free.dev',
@@ -25,4 +26,7 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    outDir: 'dist', // Explicitly set output directory
+  }
 });
