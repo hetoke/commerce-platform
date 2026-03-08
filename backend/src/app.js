@@ -48,10 +48,6 @@ app.use("/uploads", express.static("uploads"));
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-app.get("/", (req, res) => {
-  res.send("API running");
-});
-
 app.use("/api/auth", authRoutes);
 app.use("/api/items", itemsRoutes);
 app.use("/api/items", reviewRoutes);
@@ -64,7 +60,7 @@ app.use("/health", healthRouter);
 app.use(express.static(path.join(__dirname, 'dist')));
 
 // Handle SPA routing
-app.get('*', (req, res) => {
+app.get(/(.*)/, (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
