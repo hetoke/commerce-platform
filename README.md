@@ -8,51 +8,53 @@ The project focuses on clean architecture, maintainability, and secure API desig
 
 ## Demo
 
+**Live app:** https://commerce-platform.onrender.com/
 
-Admin access is restricted to prevent abuse of the live demo.
+> Admin access is restricted to prevent abuse of the live demo.
+> If you would like to explore admin features, feel free to reach out.
+
+<!-- Add screenshots below -->
+## Screenshots
+
+> _Screenshots coming soon_
 
 ## Features
 
 ### User Features
 
-- Browse items
+- Browse and search items
 - View item details
 - Purchase items
 - View purchase history
-- Leave item reviews
-- Authentication with secure sessions
+- Leave item reviews with star ratings
+- Authentication via Google OAuth2
 
 ### Admin Features
 
-Admin capabilities include:
-
-- Creating items
-- Editing items
-- Deleting items
-
-Admin access credentials are not publicly shared to prevent abuse of the live demo.
-If you would like to explore these features, please contact me.
+- Create, edit, and delete items
+- Upload product images (stored on Supabase Storage)
 
 ## Tech Stack
 
 ### Frontend
 
-- ReactJS
+- React
 - TailwindCSS
 
 ### Backend
 
 - Node.js
 - Express.js
-- MongoDB
-- Mongoose
+- MongoDB + Mongoose
+- Supabase Storage (media uploads)
 
 ### Authentication & Security
 
-- OAuth2 (Login with Google)
-- JWT session management
-- HTTP-only cookies
-- Request validation
+- Google OAuth2
+- JWT access tokens in httpOnly cookies
+- CSRF protection
+- Rotating SHA-256 hashed refresh tokens
+- Request validation (express-validator)
 - Rate limiting
 
 ### Testing
@@ -62,7 +64,7 @@ If you would like to explore these features, please contact me.
 
 ### DevOps
 
-- GitHub Actions (CI)
+- GitHub Actions (CI/CD)
 - Render (Deployment)
 - MongoDB Atlas (Cloud Database)
 
@@ -71,27 +73,29 @@ If you would like to explore these features, please contact me.
 This project includes LLM-assisted tooling that automatically generates:
 
 - Swagger/OpenAPI documentation
-- API regression tests
+- Vitest API regression tests
 
-The tooling analyzes backend routes and controllers to produce documentation and tests automatically, reducing manual development overhead.
+The tooling analyzes Express routes and controllers to produce documentation and tests automatically, reducing manual development overhead.
 
-**The LLM used is:** `qwen3-coder:480b-cloud` via Ollama
+**LLM used:** `qwen3-coder:480b-cloud` via Ollama
 
 ## Architecture
 
 The backend follows a modular layered architecture:
+
 ```
 routes → controllers → services → models
 ```
-Layer responsibilities
 
-Layer	Responsibility
-Routes	Define API endpoints and attach middleware (authentication, validation).
-Controllers	Handle HTTP requests and responses. Controllers remain thin and delegate business logic to services.
-Services	Implement core business logic such as purchases, item management, and reviews.
-Models	Define MongoDB schemas using Mongoose.
+| Layer | Responsibility |
+|-------|---------------|
+| Routes | Define API endpoints and attach middleware (auth, validation) |
+| Controllers | Handle HTTP requests/responses; delegate logic to services |
+| Services | Implement core business logic (purchases, items, reviews) |
+| Models | Define MongoDB schemas using Mongoose |
 
-Example flow
+**Example flow:**
+
 ```
 POST /api/purchases
         ↓
@@ -102,105 +106,75 @@ purchaseService.createPurchaseService()
 Purchase model
 ```
 
-This separation provides several benefits:
-
-- Maintainability — database schema changes are isolated in the model/service layers.
-
-- Testability — services can be tested independently from HTTP logic.
-
-- Clear responsibility boundaries — routes handle API concerns while services handle business logic.
-
-
+Benefits:
+- **Maintainability** — schema changes are isolated to model/service layers
+- **Testability** — services can be tested independently from HTTP logic
+- **Clear boundaries** — routes handle API concerns, services handle business logic
 
 ## API Protection
 
-Security protections include:
+- Request validation via `express-validator`
+- Rate limiting on authentication endpoints
+- Secure httpOnly cookies
+- Role-based access control (user / admin)
 
-- request validation using express-validator
-- rate limiting on authentication endpoints
-- secure HTTP-only cookies
-- role-based access control
-
-These mechanisms help mitigate:
-
-- brute-force attacks
-- malformed requests
-- unauthorized access
+Mitigates: brute-force attacks, malformed requests, unauthorized access.
 
 ## Testing
 
 API regression tests are implemented using Vitest and Supertest.
 
-The test suite validates:
-
-- endpoint availability
-- request validation
-- authentication behavior
-- authorization logic
-
-### Example test categories:
-
+Test categories:
 - Auth routes
 - Account routes
 - Item routes
 - Purchase routes
 - Review routes
 
-### Current test status:
-
-- 44 tests passing
-- 6 test suites
+**Current status: 44 tests passing across 6 test suites**
 
 ## CI / CD
 
-Continuous Integration is implemented using GitHub Actions.
+Implemented using GitHub Actions:
 
-Each push triggers:
-
-- dependency installation
-- automated test execution
-
-The application is deployed to Render, with MongoDB Atlas as the production database.
+- **CI** — runs on every push to `main`: installs dependencies, executes test suite
+- **CD (Backend)** — triggers automatically after CI passes, deploys to Render
+- **CD (Frontend)** — triggers on `frontend/**` changes, deploys to Render
 
 ## Future Improvements
 
-Potential improvements if development continued:
-
 - TypeScript refactor for stronger type safety
 - Redis caching for high-traffic endpoints
-- Supabase or S3-compatible object storage for media uploads
-- payment gateway integration (VNPay / MoMo / ZaloPay)
-- email verification and password reset using Nodemailer
+- Payment gateway integration (VNPay / MoMo / ZaloPay)
+- Email verification and password reset via Nodemailer
 
 ## Local Development
 
-Clone the repository:
 ```bash
-git clone https://github.com/hetoke/ministore.git
-```
+# Clone the repository
+git clone https://github.com/hetoke/commerce-platform.git
 
-Install dependencies:
-```bash
-npm install
-```
+# Install backend dependencies
+cd backend && npm install
 
-Configure environment variables:
-```bash
-cp .env.example .env
-```
+# Install frontend dependencies
+cd ../frontend && npm install
 
-Start the development server:
-```bash
+# Configure environment variables
+cd ../backend && cp .env.example .env
+
+# Start backend
 npm run dev
-```
 
-Run tests:
-```bash
-npm run test
+# Start frontend (separate terminal)
+cd ../frontend && npm run dev
+
+# Run tests
+cd ../backend && npm test
 ```
 
 ## Author
 
 Built as a solo full-stack project focusing on secure backend design, API architecture, and automated development tooling.
 
-If you are interested in the project or would like to explore the admin features, feel free to reach out.
+GitHub: [hetoke](https://github.com/hetoke)
