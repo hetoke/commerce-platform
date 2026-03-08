@@ -56,12 +56,11 @@ app.use("/api/account", accountRoutes);
 app.use("/api/purchases", purchaseRoutes);
 app.use("/health", healthRouter);
 
-// Serve static files - make sure 'dist' folder exists
-app.use(express.static(path.join(__dirname, 'dist')));
+app.use(express.static(path.join(__dirname, '../../frontend/dist')));
 
 // Handle SPA routing
 app.get(/(.*)/, (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  res.sendFile(path.join(__dirname, '../../frontend/dist', 'index.html'));
 });
 
 export default app;
