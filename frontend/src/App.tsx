@@ -12,6 +12,7 @@ import CustomerManage from "./pages/CustomerManage.jsx";
 import ItemDetail from "./pages/ItemDetail.jsx";
 import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
+import { publicFetch } from "./api/api.js"
 
 function App() {
   const navigate = useNavigate();
@@ -31,7 +32,7 @@ function App() {
   useEffect(() => {
     const loadItems = async () => {
       try {
-        const response = await fetch("/api/items");
+        const response = await publicFetch("/api/items");
         if (!response.ok) throw new Error("Failed to load items.");
 
         const data = await response.json();
@@ -64,7 +65,7 @@ function App() {
 
 
   const handleLogout = async () => {
-    await fetch("/api/auth/logout", {
+    await publicFetch("/api/auth/logout", {
       method: "POST",
       credentials: "include",
     });

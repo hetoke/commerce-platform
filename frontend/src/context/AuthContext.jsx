@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import { publicFetch } from "../api/api.js";
 
 const AuthContext = createContext();
 

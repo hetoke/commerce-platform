@@ -6,7 +6,7 @@ import LoadingScreen from "../components/LoadingScreen.jsx";
 import Typewriter from "../components/Typewriter.jsx";
 import Toast from "../components/Toast.jsx"
 import { useAuth } from "../context/AuthContext";
-import { protectedFetch } from "../api/api.js"
+import { publicFetch, protectedFetch } from "../api/api.js"
 
 
 const ItemDetail = () => {
@@ -31,8 +31,8 @@ const ItemDetail = () => {
     const fetchData = async () => {
       try {
         const [itemRes, reviewRes] = await Promise.all([
-          fetch(`/api/items/${itemId}`),
-          fetch(`/api/items/${itemId}/reviews`)
+          publicFetch(`/api/items/${itemId}`),
+          publicFetch(`/api/items/${itemId}/reviews`)
         ]);
 
         const itemData = await itemRes.json();

@@ -1,8 +1,13 @@
-export const protectedFetch = async (url, options = {}) => {
+// api.js
+const API_BASE = import.meta.env.VITE_API_BASE || ""; // set in .env
+
+// Protected fetch
+export const protectedFetch = async (path, options = {}) => {
+  const url = `${API_BASE}${path}`;
   const makeRequest = async () => {
     return fetch(url, {
       ...options,
-      credentials: "include", // 🔥 REQUIRED for cookies
+      credentials: "include", // send cookies
       headers: {
         ...options.headers,
         ...(options.body && !(options.body instanceof FormData) && {
@@ -14,11 +19,10 @@ export const protectedFetch = async (url, options = {}) => {
 
   let response = await makeRequest();
 
-  // If access token expired → try refresh
   if (response.status === 401) {
-    const refreshRes = await fetch("/api/auth/refresh", {
+    const refreshRes = await fetch(`${API_BASE}/api/auth/refresh`, {
       method: "POST",
-      credentials: "include", // 🔥 send refresh cookie
+      credentials: "include",
     });
 
     if (!refreshRes.ok) {
@@ -26,15 +30,28 @@ export const protectedFetch = async (url, options = {}) => {
       return refreshRes;
     }
 
-    // Retry original request after refresh
     response = await makeRequest();
   }
 
   return response;
 };
 
+// Public fetch
+export const publicFetch = async (path, options = {}) => {
+  const url = `${API_BASE}${path}`;
+  return fetch(url, {
+    ...options,
+    headers: {
+      ...options.headers,
+      ...(options.body && !(options.body instanceof FormData) && {
+        "Content-Type": "application/json",
+      }),
+    },
+  });
+};
+
 function logout() {
-  fetch("/api/auth/logout", {
+  fetch(`${API_BASE}/api/auth/logout`, {
     method: "POST",
     credentials: "include",
   }).finally(() => {

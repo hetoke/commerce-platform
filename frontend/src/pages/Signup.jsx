@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { publicFetch } from "./api/api.js"
 
 const Signup = () => {
   const { setUser } = useAuth();
@@ -31,7 +32,7 @@ const Signup = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/auth/signup", {
+      const response = await publicFetch("/api/auth/signup", {
         method: "POST",
         credentials: "include", // 🔥 REQUIRED
         headers: { "Content-Type": "application/json" },

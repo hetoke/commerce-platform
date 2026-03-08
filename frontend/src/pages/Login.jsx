@@ -4,6 +4,7 @@ import { NavLink } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import { useAuth } from "../context/AuthContext.jsx";
+import { publicFetch } from "./api/api.js"
 
 
 
@@ -21,7 +22,7 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/auth/login", {
+      const response = await publicFetch("/api/auth/login", {
         method: "POST",
         credentials: "include", // 🔥 IMPORTANT
         headers: { "Content-Type": "application/json" },
@@ -52,7 +53,7 @@ const Login = () => {
       setIsLoading(true);
       setError("");
 
-      const res = await fetch("/api/auth/google", {
+      const res = await publicFetch("/api/auth/google", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
