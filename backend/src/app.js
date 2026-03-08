@@ -12,7 +12,7 @@ import accountRoutes from "./routes/accountRoutes.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
 import purchaseRoutes from "./routes/purchaseRoutes.js";
 
-import healthRouter from "./routes/healthRouter.js";
+import healthRouter from "./routes/health.js";
 
 
 const app = express();
