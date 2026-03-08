@@ -1,18 +1,14 @@
 import { describe, it, expect, beforeAll } from 'vitest'
 import request from 'supertest'
 import app from '../../app.js'
-import { testIds, seedDatabase } from '../../scripts/seedData.js'
+import { testIds } from '../../scripts/seedData.js'
 
 describe('POST /api/purchases', () => {
   const agent = request.agent(app)
   let validItemId
 
   beforeAll(async () => {
-    // Seed the database first
-    await seedDatabase()
-    validItemId = testIds.items[0] // pick the first seeded item
-
-    // Login as bob
+    validItemId = testIds.items[0]
     await agent.post('/api/auth/login').send({
       identifier: 'bob',
       password: 'customer123'

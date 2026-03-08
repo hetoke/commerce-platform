@@ -1,48 +1,43 @@
+// seedData.js
 import bcrypt from "bcryptjs";
-import mongoose from "mongoose";
 import User from "../models/User.js";
 import Item from "../models/Item.js";
 import Review from "../models/Review.js";
 
-// Object to store seeded IDs for tests
+// Store seeded IDs for testing/demo purposes
 export const testIds = {
   users: {},
   items: [],
+  reviews: [],
 };
 
-export async function seedDatabase() {
-  // Clear previous data
-  await User.deleteMany({});
-  await Item.deleteMany({});
-  await Review.deleteMany({});
+/**
+ * Seed essential products and admin user for production
+ */
+export async function seedInitialData() {
+  console.log("Seeding initial core data...");
 
-  // Users
-  const users = [
-    { username: "admin", password: "admin123", role: "admin" },
-    { username: "alice", password: "customer123", role: "customer" },
-    { username: "bob", password: "customer123", role: "customer" },
-    { username: "clara", password: "customer123", role: "customer" },
-  ];
-
-  const createdUsers = {};
-
-  for (const user of users) {
-    const hashedPassword = await bcrypt.hash(user.password, 10);
-    const newUser = await User.create({
-      username: user.username.toLowerCase(),
-      email: `${user.username}@example.com`,
+  // Check if admin user already exists
+  const adminUsername = process.env.ADMIN_USERNAME || "admin";
+  const adminExists = await User.findOne({ username: adminUsername });  
+  if (!adminExists) {
+    const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD || "admin123", 10);
+    const adminUser = await User.create({
+      username: process.env.ADMIN_USERNAME || "admin",
+      email: process.env.ADMIN_EMAIL || "admin@hetoke.example.com",
       password: hashedPassword,
       provider: "local",
-      role: user.role,
+      role: "admin",
     });
-    createdUsers[user.username] = newUser;
-    testIds.users[user.username] = newUser._id.toString();
+    testIds.users.admin = adminUser._id.toString();
+    console.log("Admin user created");
+  } else {
+    testIds.users.admin = adminExists._id.toString();
+    console.log("Admin user already exists, skipped");
   }
 
-  console.log("Users seeded");
-
-  // Items (add stock for validation testing)
-  const adminItems = [
+  // Seed core items
+  const coreItems = [
     {
       name: "Midnight Leather Backpack",
       price: 129,
@@ -63,48 +58,77 @@ export async function seedDatabase() {
       imagePath: "products/sneakers-001.jpg",
       stock: 15,
     },
-    {
-      name: "Slate Minimal Watch",
-      price: 210,
-      location: "Brooklyn, NY",
-      description: "Stainless steel 40mm case with matte charcoal dial.",
-      detailedDescription:
-        "Minimalist timepiece with sapphire crystal glass, precision quartz movement, and interchangeable straps. Water-resistant up to 50 meters, designed for both formal and casual wear.",
-      imagePath: "products/watch-001.jpg",
-      stock: 5,
-    },
-    {
-      name: "Noir Noise Cancelling Headphones",
-      price: 249,
-      location: "Austin, TX",
-      description: "Over-ear headphones with 30-hour battery and deep bass.",
-      detailedDescription:
-        "Active noise cancellation with adaptive ambient mode. 40mm dynamic drivers deliver deep bass and crisp highs. Supports Bluetooth 5.3, USB-C fast charging, and multi-device pairing.",
-      imagePath: "products/headphones-001.jpg",
-      stock: 8,
-    },
   ];
 
-  const createdItems = await Item.insertMany(adminItems);
-  testIds.items = createdItems.map((i) => i._id.toString());
-  console.log("Items seeded:", testIds.items);
+  for (const item of coreItems) {
+    const exists = await Item.findOne({ name: item.name });
+    if (!exists) {
+      const newItem = await Item.create(item);
+      testIds.items.push(newItem._id.toString());
+      console.log(`Item created: ${item.name}`);
+    } else {
+      testIds.items.push(exists._id.toString());
+      console.log(`Item exists: ${item.name}, skipped`);
+    }
+  }
+}
 
-  // Reviews
+/**
+ * Seed mock/demo users and sample reviews
+ */
+export async function seedMockAccounts() {
+  console.log("Seeding mock/demo users and reviews...");
+
+  const mockUsers = [
+    { username: "admin", password: "admin123", role: "admin" },
+    { username: "alice", password: "customer123", role: "customer" },
+    { username: "bob", password: "customer123", role: "customer" },
+    { username: "clara", password: "customer123", role: "customer" },
+  ];
+
+  const createdUsers = {};
+
+  for (const user of mockUsers) {
+    const existing = await User.findOne({ username: user.username });
+    if (!existing) {
+      const hashedPassword = await bcrypt.hash(user.password, 10);
+      const newUser = await User.create({
+        username: user.username.toLowerCase(),
+        email: `${user.username}@example.com`,
+        password: hashedPassword,
+        provider: "local",
+        role: user.role,
+      });
+      createdUsers[user.username] = newUser;
+      testIds.users[user.username] = newUser._id.toString();
+      console.log(`User created: ${user.username}`);
+    } else {
+      createdUsers[user.username] = existing;
+      testIds.users[user.username] = existing._id.toString();
+      console.log(`User exists: ${user.username}, skipped`);
+    }
+  }
+
+  // Seed items for mock reviews
+  const items = await Item.find({});
+  const createdItems = items.length ? items : [];
+
+  // Sample reviews
   const sampleReviews = [
     {
-      item: createdItems[0]._id,
+      item: createdItems[0]?._id,
       user: createdUsers.alice._id,
       rating: 5,
       comment: "Absolutely love this backpack!",
     },
     {
-      item: createdItems[0]._id,
+      item: createdItems[0]?._id,
       user: createdUsers.bob._id,
       rating: 4,
       comment: "Very solid build quality.",
     },
     {
-      item: createdItems[1]._id,
+      item: createdItems[1]?._id,
       user: createdUsers.clara._id,
       rating: 3,
       comment: "Comfortable but runs small.",
@@ -112,22 +136,25 @@ export async function seedDatabase() {
   ];
 
   for (const reviewData of sampleReviews) {
-    const review = await Review.create(reviewData);
+    // Check if review exists
+    const exists = await Review.findOne({
+      item: reviewData.item,
+      user: reviewData.user,
+    });
+    if (!exists && reviewData.item && reviewData.user) {
+      const review = await Review.create(reviewData);
+      testIds.reviews.push(review._id.toString());
 
-    await Item.updateOne(
-      { _id: review.item },
-      {
-        $inc: {
-          totalRating: review.rating,
-          reviewCount: 1,
-        },
-      }
-    );
+      // Update atomic counters
+      await Item.updateOne(
+        { _id: review.item },
+        {
+          $inc: { totalRating: review.rating, reviewCount: 1 },
+        }
+      );
+      console.log(`Review added by ${reviewData.user} for item ${reviewData.item}`);
+    }
   }
-
-  console.log("Reviews seeded with atomic counters.");
-  console.log("Database seeding complete.");
-
-  // Optional: disconnect mongoose if this script runs standalone
-  // await mongoose.disconnect();
+  console.log("Mock/demo seeding complete.");
 }
+
