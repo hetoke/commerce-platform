@@ -20,7 +20,7 @@ export const updateUsernameService = async (userId, newUsername) => {
   const updatedUser = await User.findByIdAndUpdate(
     userId,
     { username: normalized },
-    { new: true, runValidators: true }
+    { returnDocument: 'after', runValidators: true }
   );
 
   if (!updatedUser) {

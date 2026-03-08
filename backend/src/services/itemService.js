@@ -41,7 +41,7 @@ export const createItem = async (data) => {
 };
 
 export const updateItem = async (itemId, data) => {
-  const item = await Item.findByIdAndUpdate(itemId, data, { new: true });
+  const item = await Item.findByIdAndUpdate(itemId, data, { returnDocument: 'after' });
 
   if (!item) {
     throw { status: 404, message: "Item not found." };

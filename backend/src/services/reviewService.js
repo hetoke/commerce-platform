@@ -31,7 +31,7 @@ export const upsertReviewService = async ({ itemId, userId, rating, comment }) =
     review = await Review.findByIdAndUpdate(
       existing._id,
       { rating, comment },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     await updateItemRating(item, rating, existing.rating);

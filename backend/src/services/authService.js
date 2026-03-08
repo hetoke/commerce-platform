@@ -132,7 +132,7 @@ export const refreshService = async (refreshToken) => {
       expiresAt: { $gt: new Date() }
     },
     { revoked: true },
-    { new: true }
+    { returnDocument: 'after' }
   ).populate("user");
 
   if (!stored) {

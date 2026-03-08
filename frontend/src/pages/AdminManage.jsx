@@ -252,9 +252,11 @@ const AdminManage = ({ items, setItems }) => {
                 className="mt-2 w-full rounded-lg border border-[#2a3442] bg-[#141a22] px-3 py-2 text-sm text-slate-300 focus:border-[#6f7cff] focus:outline-none file:mr-3 file:rounded-md file:border-0 file:bg-slate-700 file:px-3 file:py-1 file:text-xs file:font-semibold file:text-slate-100 hover:file:bg-slate-600"
               />
               {form.path ? (
-                <p className="mt-2 text-xs text-slate-500">
-                  Uploaded: {form.path}
-                </p>
+                <img
+                  src={form.path}
+                  alt="Preview"
+                  className="mt-2 h-20 w-20 rounded-lg object-cover border border-[#2a3442]"
+                />
               ) : null}
             </label>
           </div>
@@ -305,7 +307,7 @@ const AdminManage = ({ items, setItems }) => {
                   <div className="h-14 w-14 overflow-hidden rounded-lg bg-[#1a2330]">
                     {item.path ? (
                       <img
-                        src={`/uploads/${item.path}`}
+                        src={item.path}
                         alt={item.name}
                         className="h-full w-full object-cover"
                       />

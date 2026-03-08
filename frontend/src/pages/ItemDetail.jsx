@@ -128,7 +128,7 @@ const ItemDetail = () => {
   };
 
   const imageUrl = item.imagePath
-    ? `/uploads/${item.imagePath}`
+    ? item.imagePath
     : "https://images.unsplash.com/photo-1503602642458-232111445657?w=1200&q=80";
 
   return (

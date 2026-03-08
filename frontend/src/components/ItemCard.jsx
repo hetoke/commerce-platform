@@ -9,7 +9,7 @@ const ItemCard = ({ item, onToast }) => {
   const [isBuying, setIsBuying] = useState(false);
 
   const imageUrl = item.path
-    ? `/uploads/${item.path}`
+    ? item.path
     : item.image ||
       "https://images.unsplash.com/photo-1503602642458-232111445657?w=800&q=80";
 
