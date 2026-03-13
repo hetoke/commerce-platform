@@ -9,13 +9,18 @@ import {
 } from "../controllers/authController.js";
 import { loginLimiter, signupLimiter } from "../middleware/rateLimitter.js";
 import { requireAuth } from "../middleware/auth.js";
-import { csrfProtection } from "../middleware/csrf.js";
+import { csrfProtection, generateCsrfToken } from "../middleware/csrf.js";
 import { body, validationResult } from "express-validator";
 
 const router = express.Router();
 
-router.get("/csrf-token", csrfProtection, (req, res) => {
-  res.json({ csrfToken: req.csrfToken() });
+router.get("/csrf-token", (req, res) => {
+  try {
+    const token = generateCsrfToken(req, res);
+    res.json({ csrfToken: token });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 /**

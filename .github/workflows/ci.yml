@@ -43,6 +43,7 @@ jobs:
           cp .env .env.test
           echo "SUPABASE_URL=https://fake.supabase.co" >> .env.test
           echo "SUPABASE_SERVICE_ROLE_KEY=fake-service-role-key" >> .env.test
+          echo "CSRF_SECRET=test-token" >> .env.test
           
 
       - name: Run backend tests

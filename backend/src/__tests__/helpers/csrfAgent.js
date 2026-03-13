@@ -4,24 +4,22 @@ import app from '../../app.js';
 
 export const createCsrfAgent = () => {
   const agent = supertest.agent(app);
+  let cachedToken = null;
 
   const getCsrfToken = async () => {
+    if (cachedToken) return cachedToken;
     const res = await agent.get('/api/auth/csrf-token');
     if (!res.body?.csrfToken) throw new Error('CSRF token not found in JSON');
-    return res.body.csrfToken;
+    cachedToken = res.body.csrfToken;
+    return cachedToken;
   };
 
-  // Resolves to a supertest Request object — caller must NOT await before chaining
   const buildCsrfRequest = async (method, url) => {
     const token = await getCsrfToken();
-    // Return request configuration instead of executing
-    return {
-      method: method,
-      url: url,
-      token: token
-    };
+    return { method, url, token };
   };
 
+  const resetToken = () => { cachedToken = null; };
 
-  return { agent, getCsrfToken, buildCsrfRequest };
+  return { agent, getCsrfToken, buildCsrfRequest, resetToken };
 };

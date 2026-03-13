@@ -36,9 +36,13 @@ describe('Item routes', () => {
 
     it('returns 400 when required field "name" is missing', async () => {
       const config = await csrfAgent.buildCsrfRequest('post', '/api/items');
+      console.log("Token being sent:", config.token);
+      console.log("Agent cookies:", csrfAgent.agent.jar?.toJSON?.());
       const res = await csrfAgent.agent[config.method](config.url)
         .set('X-CSRF-Token', config.token)
         .send({ description: 'test item' });
+      console.log("Response status:", res.status);
+      console.log("Response body:", res.body);
       expect(res.status).toBe(400);
     });
 

@@ -1,9 +1,15 @@
-import csurf from "csurf";
+import { doubleCsrf } from "csrf-csrf";
 
-export const csrfProtection = csurf({
-  cookie: {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",           // only HTTPS in prod
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // localhost uses Lax
+const { doubleCsrfProtection, generateCsrfToken } = doubleCsrf({
+  getSecret: () => process.env.CSRF_SECRET,
+  getSessionIdentifier: (req) => req.cookies?.accessToken ?? "anonymous",
+  cookieName: "x-csrf-token",
+  getCsrfTokenFromRequest: (req) => req.headers["x-csrf-token"],
+  cookieOptions: {
+    httpOnly: false,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
   },
 });
+
+export { doubleCsrfProtection as csrfProtection, generateCsrfToken };
