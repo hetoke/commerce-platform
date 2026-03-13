@@ -10,6 +10,8 @@ The project focuses on clean architecture, maintainability, and secure API desig
 
 **Live app:** https://commerce-platform.onrender.com/
 
+> ⚠️ Demo may take ~30 seconds to load on first visit (free tier cold start)
+
 > Admin access is restricted to prevent abuse of the live demo.
 > If you would like to explore admin features, feel free to reach out.
 
