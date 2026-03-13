@@ -1,14 +1,15 @@
 name: CD - Frontend Deploy
-
 on:
   push:
     branches: [main]
     paths:
       - "frontend/**"
-
 jobs:
   deploy-frontend:
     runs-on: ubuntu-latest
+    environment:
+      name: production-frontend
+      url: https://commerce-platform.onrender.com
     steps:
       - name: Trigger Render Frontend Deploy
         run: curl -X POST ${{ secrets.RENDER_FRONTEND_DEPLOY_HOOK }}
