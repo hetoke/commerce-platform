@@ -8,7 +8,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Account from "./pages/Account";
 import AdminManage from "./pages/AdminManage";
-import CustomerManage from "./pages/CustomerManage";
+import Cart from "./pages/Cart";
 import ItemDetail from "./pages/ItemDetail";
 import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
@@ -20,6 +20,7 @@ function App() {
 
   const { user, authLoading, setUser } = useAuth();
   const isLoggedIn = !!user;
+  const isAdmin = user?.role === "admin";
 
 
   // -------------------------
@@ -81,7 +82,11 @@ function App() {
 
   return (
     <div className="min-h-screen">
-      <Navbar isLoggedIn={isLoggedIn} onLogout={handleLogout} />
+      <Navbar
+        isLoggedIn={isLoggedIn}
+        userRole={user?.role}
+        onLogout={handleLogout}
+      />
 
       <Routes>
         <Route path="/" element={<Home items={items} error={itemsError} />} />
@@ -91,10 +96,34 @@ function App() {
           element={
             !isLoggedIn ? (
               <Navigate to="/login" replace />
-            ) : user.role === "admin" ? (
+            ) : isAdmin ? (
               <AdminManage items={items} setItems={setItems} />
             ) : (
-              <CustomerManage />
+              <Navigate to="/order" replace />
+            )
+          }
+        />
+        <Route
+          path="/cart"
+          element={
+            !isLoggedIn ? (
+              <Navigate to="/login" replace />
+            ) : isAdmin ? (
+              <Navigate to="/manage" replace />
+            ) : (
+              <Cart />
+            )
+          }
+        />
+        <Route
+          path="/order"
+          element={
+            !isLoggedIn ? (
+              <Navigate to="/login" replace />
+            ) : isAdmin ? (
+              <Navigate to="/manage" replace />
+            ) : (
+              <Cart />
             )
           }
         />

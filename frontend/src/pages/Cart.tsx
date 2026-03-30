@@ -3,7 +3,7 @@ import Typewriter from "../components/Typewriter";
 import { protectedFetch } from "../api/api";
 import type { PurchaseItem } from "../types";
 
-function CustomerManage() {
+function Cart() {
   const [items, setItems] = useState<PurchaseItem[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -129,4 +129,4 @@ function CustomerManage() {
   );
 }
 
-export default CustomerManage;
+export default Cart;

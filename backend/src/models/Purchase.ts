@@ -27,7 +27,6 @@ const purchaseSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Remove the unique constraint, keep regular index
 purchaseSchema.index({ user: 1, item: 1 });
 
 export default mongoose.models.Purchase || mongoose.model("Purchase", purchaseSchema);

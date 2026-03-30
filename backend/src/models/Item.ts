@@ -35,7 +35,6 @@ const itemSchema = new mongoose.Schema(
       type: String
     },
 
-    // 🔥 Fast counters
     totalRating: {
       type: Number,
       default: 0
