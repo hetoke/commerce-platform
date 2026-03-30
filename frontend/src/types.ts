@@ -33,12 +33,20 @@ export interface PurchaseItem {
   purchasedAt: string;
 }
 
+export interface OrderCustomerInfo {
+  name: string;
+  phoneNumber: string;
+  receivedLocation: string;
+  paymentMethod: string;
+}
+
 export interface Order {
   id: string;
   items: PurchaseItem[];
   totalQuantity: number;
   totalPrice: number;
   createdAt: string;
+  customerInfo: OrderCustomerInfo;
 }
 
 export interface Review {

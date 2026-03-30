@@ -14,7 +14,12 @@ import ItemDetail from "./pages/ItemDetail";
 import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import { publicFetch } from "./api/api";
-import type { Item, Order as OrderType, PurchaseItem } from "./types";
+import type {
+  Item,
+  Order as OrderType,
+  OrderCustomerInfo,
+  PurchaseItem,
+} from "./types";
 
 function App() {
   const navigate = useNavigate();
@@ -77,7 +82,10 @@ function App() {
     navigate("/");
   };
 
-  const createOrder = (selectedItems: PurchaseItem[]) => {
+  const createOrder = (
+    selectedItems: PurchaseItem[],
+    customerInfo: OrderCustomerInfo,
+  ) => {
     const itemsSnapshot = selectedItems.map((item) => ({ ...item }));
 
     if (itemsSnapshot.length === 0) {
@@ -93,6 +101,7 @@ function App() {
         0,
       ),
       createdAt: new Date().toISOString(),
+      customerInfo,
     };
 
     setOrders((prev) => [newOrder, ...prev]);

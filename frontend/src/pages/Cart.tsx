@@ -1,11 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import OrderForm from "../components/OrderForm";
 import Typewriter from "../components/Typewriter";
 import { protectedFetch } from "../api/api";
-import type { PurchaseItem } from "../types";
+import type { OrderCustomerInfo, PurchaseItem } from "../types";
 
 interface CartProps {
-  onCreateOrder: (selectedItems: PurchaseItem[]) => boolean;
+  onCreateOrder: (
+    selectedItems: PurchaseItem[],
+    customerInfo: OrderCustomerInfo,
+  ) => boolean;
 }
 
 function Cart({ onCreateOrder }: CartProps) {
@@ -15,6 +19,7 @@ function Cart({ onCreateOrder }: CartProps) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [isOrderFormOpen, setIsOrderFormOpen] = useState(false);
 
   useEffect(() => {
     const fetchPurchases = async () => {
@@ -92,19 +97,28 @@ function Cart({ onCreateOrder }: CartProps) {
     }
   };
 
-  const handleCreateOrder = () => {
+  const handleCreateOrderClick = () => {
     if (selectedItems.length === 0) {
       setError("Choose at least one item to create an order.");
       return;
     }
 
-    const created = onCreateOrder(selectedItems);
+    setError("");
+    setIsOrderFormOpen(true);
+  };
+
+  const handleOrderSubmit = (
+    itemsToOrder: PurchaseItem[],
+    customerInfo: OrderCustomerInfo,
+  ) => {
+    const created = onCreateOrder(itemsToOrder, customerInfo);
     if (!created) {
       setError("Unable to create order.");
-      return;
+      return false;
     }
 
     navigate("/order");
+    return true;
   };
 
   return (
@@ -145,7 +159,7 @@ function Cart({ onCreateOrder }: CartProps) {
 
             <button
               type="button"
-              onClick={handleCreateOrder}
+              onClick={handleCreateOrderClick}
               className="rounded-full bg-[#6f7cff] px-4 py-2 text-sm font-semibold text-black hover:opacity-90"
             >
               Create Order ({selectedIds.length}){selectedTotal > 0 ? ` - $${selectedTotal.toFixed(2)}` : ""}
@@ -194,6 +208,14 @@ function Cart({ onCreateOrder }: CartProps) {
             ))}
           </div>
         </>
+      )}
+
+      {isOrderFormOpen && (
+        <OrderForm
+          items={selectedItems}
+          onClose={() => setIsOrderFormOpen(false)}
+          onSubmit={handleOrderSubmit}
+        />
       )}
     </main>
   );

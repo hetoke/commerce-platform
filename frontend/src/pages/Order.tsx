@@ -45,6 +45,33 @@ function Order({ orders }: OrderProps) {
                 </div>
               </div>
 
+              <div className="mt-4 grid gap-3 rounded-xl border border-[#1f2937] bg-[#0f141b] p-4 text-sm text-slate-300 sm:grid-cols-2">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Customer Name
+                  </p>
+                  <p className="mt-1 text-slate-100">{order.customerInfo.name}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Phone Number
+                  </p>
+                  <p className="mt-1 text-slate-100">{order.customerInfo.phoneNumber}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Payment Method
+                  </p>
+                  <p className="mt-1 text-slate-100">{order.customerInfo.paymentMethod}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Received Location
+                  </p>
+                  <p className="mt-1 text-slate-100">{order.customerInfo.receivedLocation}</p>
+                </div>
+              </div>
+
               <div className="mt-4 space-y-3">
                 {order.items.map((item) => (
                   <div
