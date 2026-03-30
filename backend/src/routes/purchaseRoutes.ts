@@ -1,0 +1,156 @@
+import express from "express";
+import {
+	listCustomerItems,
+	createPurchase,
+	cancelPurchase
+} from "../controllers/purchaseController.ts";
+import { requireAuth } from "../middleware/auth.ts";
+import { param, body, validationResult } from "express-validator";
+import { csrfProtection } from "../middleware/csrf.ts";
+
+const router = express.Router();
+
+/**
+ * @swagger
+ * /api/purchases:
+ *   get:
+ *     summary: Get current user's purchased items
+ *     tags:
+ *       - Purchase
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       '200':
+ *         description: List of purchased items
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/CustomerPurchaseItem'
+ *       '401':
+ *         description: Unauthorized
+ */
+router.get("/", requireAuth, listCustomerItems);
+
+/**
+ * @swagger
+ * /api/purchases:
+ *   post:
+ *     summary: Purchase an item
+ *     tags:
+ *       - Purchase
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - itemId
+ *             properties:
+ *               itemId:
+ *                 type: string
+ *                 description: ID of the item to purchase
+ *               quantity:
+ *                 type: integer
+ *                 description: Quantity of the item to purchase
+ *                 example: 1
+ *     responses:
+ *       '201':
+ *         description: Purchase successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Purchase'
+ *       '400':
+ *         description: Bad request (e.g., item not found)
+ *       '401':
+ *         description: Unauthorized
+ *       '409':
+ *         description: Item already purchased
+ */
+router.post(
+  "/",
+  [
+    // Validate itemId
+    body("itemId")
+      .exists()
+      .withMessage("itemId is required")
+      .isMongoId()
+      .withMessage("itemId must be a valid MongoDB ObjectId"),
+
+    // Validate quantity
+    body("quantity")
+      .exists()
+      .withMessage("quantity is required")
+      .isInt({ min: 1 })
+      .withMessage("quantity must be an integer greater than 0"),
+
+    // Middleware to return 400 if any validation errors
+    (req, res, next) => {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+      next();
+    }
+  ],
+  requireAuth,
+  csrfProtection,
+  createPurchase
+);
+
+/**
+ * @swagger
+ * /api/purchases/{purchaseId}:
+ *   delete:
+ *     summary: Cancel a purchase
+ *     tags:
+ *       - Purchase
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: purchaseId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the purchase to cancel
+ *     responses:
+ *       '200':
+ *         description: Purchase cancelled successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ *       '401':
+ *         description: Unauthorized
+ *       '404':
+ *         description: Purchase not found
+ */
+router.delete(
+  "/:purchaseId",
+  [
+    param("purchaseId")
+      .isMongoId()
+      .withMessage("Invalid purchaseId format"),
+
+    (req, res, next) => {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+      next();
+    }
+  ],
+  requireAuth,
+  csrfProtection,
+  cancelPurchase
+);
+
+
+
+export default router;

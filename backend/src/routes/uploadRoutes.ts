@@ -1,0 +1,65 @@
+import express from "express";
+import { requireAuth, requireAdmin } from "../middleware/auth.ts";
+import { csrfProtection } from "../middleware/csrf.ts";
+import { upload } from "../config/multer.ts";
+import { uploadImage } from "../controllers/uploadController.ts";
+
+const router = express.Router();
+
+/**
+ * @swagger
+ * /api/uploads/image:
+ *   post:
+ *     summary: Upload an image (Admin only)
+ *     tags:
+ *       - Uploads
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - image
+ *             properties:
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       201:
+ *         description: Image uploaded successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UploadImageResponse'
+ *       400:
+ *         description: Bad request – no file uploaded or validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Unauthorized – missing or invalid authentication token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       403:
+ *         description: Forbidden – only admins may upload images
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.post(
+  "/image",
+  requireAuth,
+  requireAdmin,
+  csrfProtection,
+  upload.single("image"),
+  uploadImage
+);
+
+export default router;

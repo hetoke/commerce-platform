@@ -1,18 +1,19 @@
 import "./index.css";
-import React, { useEffect, useState } from "react";
-import Navbar from "./components/Navbar.jsx";
-import LoadingScreen from "./components/LoadingScreen.jsx";
-import Home from "./pages/Home.jsx";
-import About from "./pages/About.jsx";
-import Login from "./pages/Login.jsx";
-import Signup from "./pages/Signup.jsx";
-import Account from "./pages/Account.jsx";
-import AdminManage from "./pages/AdminManage.jsx";
-import CustomerManage from "./pages/CustomerManage.jsx";
-import ItemDetail from "./pages/ItemDetail.jsx";
+import { useEffect, useState } from "react";
+import Navbar from "./components/Navbar";
+import LoadingScreen from "./components/LoadingScreen";
+import Home from "./pages/Home";
+import About from "./pages/About";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import Account from "./pages/Account";
+import AdminManage from "./pages/AdminManage";
+import CustomerManage from "./pages/CustomerManage";
+import ItemDetail from "./pages/ItemDetail";
 import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
-import { publicFetch } from "./api/api.js"
+import { publicFetch } from "./api/api";
+import type { Item } from "./types";
 
 function App() {
   const navigate = useNavigate();
@@ -25,9 +26,8 @@ function App() {
   // ITEMS STATE
   // -------------------------
 
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState<Item[]>([]);
   const [itemsError, setItemsError] = useState("");
-  const [isLoadingItems, setIsLoadingItems] = useState(true);
 
   useEffect(() => {
     const loadItems = async () => {
@@ -35,32 +35,33 @@ function App() {
         const response = await publicFetch("/api/items");
         if (!response.ok) throw new Error("Failed to load items.");
 
-        const data = await response.json();
+        const data = (await response.json()) as Array<Record<string, unknown>>;
 
         const normalized = (data || []).map((item) => ({
-          id: item._id || item.id,
-          name: item.name,
-          price: item.price,
-          location: item.location,
-          description: item.description,
-          path: item.imagePath,
-          averageRating: item.averageRating,
-          reviewCount: item.reviewCount,
-          sellCount: item.sellCount,
+          id: String(item._id || item.id || ""),
+          name: String(item.name || ""),
+          price: item.price as Item["price"],
+          location: String(item.location || ""),
+          description: String(item.description || ""),
+          path: typeof item.imagePath === "string" ? item.imagePath : undefined,
+          averageRating:
+            typeof item.averageRating === "number" ? item.averageRating : undefined,
+          reviewCount:
+            typeof item.reviewCount === "number" ? item.reviewCount : undefined,
+          sellCount:
+            typeof item.sellCount === "number" ? item.sellCount : undefined,
         }));
-
-        //console.log(normalized)
 
         setItems(normalized);
         setItemsError("");
-      } catch (error: any) {
-        setItemsError(error.message);
-      } finally {
-        setIsLoadingItems(false);
+      } catch (error) {
+        setItemsError(
+          error instanceof Error ? error.message : "Failed to load items.",
+        );
       }
     };
 
-    loadItems();
+    void loadItems();
   }, []);
 
 

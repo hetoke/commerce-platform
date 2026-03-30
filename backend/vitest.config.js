@@ -4,10 +4,10 @@ export default defineConfig({
   test: {
     environment: "node",
     globals: true,
-    include: ["src/__tests__/**/*.test.js"],
+    include: ["src/__tests__/**/*.test.ts"],
     setupFiles: [
-      "./src/__tests__/setup/setupEnv.js",  // ← add this first
-      "./src/__tests__/setup/setupTestDB.js",
+      "./src/__tests__/setup/setupEnv.ts",
+      "./src/__tests__/setup/setupTestDB.ts",
     ],
   }
 });

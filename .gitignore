@@ -25,6 +25,7 @@ frontend/*.sw?
 
 backend/node_modules
 backend/uploads/
+backend/dist/
 backend/.env
 frontend/.env
 

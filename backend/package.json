@@ -2,16 +2,18 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "server.js",
+  "main": "src/server.ts",
   "type": "module",
   "scripts": {
-    "start": "node src/server.js",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "tsx src/server.ts",
+    "typecheck": "tsc --noEmit -p src/tsconfig.json",
     "test": "cross-env NODE_ENV=test vitest run",
-    "seed": "node src/scripts/runSeed.js",
-    "docs": "node src/scripts/generateAPIDocs.js",
-    "gen_testcases": "node src/scripts/generateTestCases.js",
-    "clean_tokens": "node src/scripts/cleanRefreshTokens.js",
-    "dev": "nodemon src/server.js"
+    "seed": "tsx src/scripts/runSeed.ts",
+    "docs": "tsx src/scripts/generateAPIDocs.ts",
+    "gen_testcases": "tsx src/scripts/generateTestCases.ts",
+    "clean_tokens": "tsx src/scripts/cleanRefreshTokens.ts",
+    "dev": "nodemon --watch src --ext ts --exec tsx src/server.ts"
   },
   "keywords": [],
   "author": "",
@@ -41,9 +43,21 @@
   },
   "devDependencies": {
     "@jest/globals": "^29.7.0",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/morgan": "^1.9.10",
+    "@types/multer": "^2.1.0",
+    "@types/node": "^25.5.0",
+    "@types/supertest": "^7.2.0",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.8",
     "cross-env": "^10.1.0",
     "mongodb-memory-server": "^11.0.1",
     "supertest": "^7.2.2",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2",
     "vitest": "^4.0.18"
   }
 }
