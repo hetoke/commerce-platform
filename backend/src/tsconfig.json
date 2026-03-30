@@ -14,7 +14,7 @@
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": true,
     "useUnknownInCatchVariables": false,
-    "types": ["node", "vitest/globals"]
+    "types": ["node"]
   },
   "include": ["**/*.ts", "**/*.d.ts"],
   "exclude": ["node_modules"]
