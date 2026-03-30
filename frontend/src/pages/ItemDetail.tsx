@@ -54,9 +54,20 @@ function ItemDetail() {
   if (loading || authLoading) return <LoadingScreen />;
   if (!item) return <div className="p-6 text-slate-400">Item not found</div>;
 
-  const buyHandler = async (e: React.MouseEvent<HTMLButtonElement>) => {
+  const addToCartHandler = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    if (!user) return setToast({ message: "Please log in to buy this item.", type: "error" });
+    if (!user) {
+      return setToast({
+        message: "Please log in to add this item to cart.",
+        type: "error",
+      });
+    }
+    if (user.role === "admin") {
+      return setToast({
+        message: "Admin accounts cannot add items to cart.",
+        type: "warning",
+      });
+    }
 
     try {
       setIsSubmitting(true);
@@ -64,27 +75,25 @@ function ItemDetail() {
         method: "POST",
         body: JSON.stringify({
           itemId: item.id,
-          quantity: quantity, // Include quantity
+          quantity,
         }),
       });
-      const data = (await res.json()) as { message?: string };
+      const data = (await res.json().catch(() => ({}))) as { message?: string };
+
       if (!res.ok) {
         if (res.status === 409) {
-          throw new Error("Item already purchased.");
+          throw new Error("Item already in cart.");
         }
-        throw new Error(data.message || "Purchase failed.");
+        throw new Error(data.message || "Failed to add item to cart.");
       }
 
-      setItem((prev) =>
-        prev
-          ? { ...prev, sellCount: (prev.sellCount || 0) + quantity }
-          : prev,
-      );
-      setToast({ message: `${quantity} item(s) purchased successfully!`, type: "success" });
-      setQuantity(1);
+      setToast({
+        message: `${quantity} item(s) added to cart.`,
+        type: "success",
+      });
     } catch (err) {
       setToast({
-        message: err instanceof Error ? err.message : "Purchase failed.",
+        message: err instanceof Error ? err.message : "Failed to add item to cart.",
         type: "error",
       });
     } finally {
@@ -186,7 +195,7 @@ function ItemDetail() {
             {item.location}
           </div>
 
-          {/* Quantity Selector + Buy Button */}
+          {/* Quantity Selector + Cart Button */}
           <div className="flex items-center gap-4 mt-4">
             <div className="flex items-center border border-[#2a3442] rounded-full">
               <button
@@ -209,10 +218,10 @@ function ItemDetail() {
 
             <button 
               className="px-6 py-2 rounded-full bg-[#6f7cff] text-black font-semibold hover:opacity-90 transition disabled:opacity-50"
-              onClick={buyHandler}
+              onClick={addToCartHandler}
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Buying..." : `Buy Now ($${(unitPrice * quantity).toFixed(2)})`}
+              {isSubmitting ? "Adding..." : `Add to Cart ($${(unitPrice * quantity).toFixed(2)})`}
             </button>
           </div>
 

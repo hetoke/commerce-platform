@@ -9,11 +9,12 @@ import Signup from "./pages/Signup";
 import Account from "./pages/Account";
 import AdminManage from "./pages/AdminManage";
 import Cart from "./pages/Cart";
+import Order from "./pages/Order";
 import ItemDetail from "./pages/ItemDetail";
 import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import { publicFetch } from "./api/api";
-import type { Item } from "./types";
+import type { Item, Order as OrderType, PurchaseItem } from "./types";
 
 function App() {
   const navigate = useNavigate();
@@ -29,6 +30,7 @@ function App() {
 
   const [items, setItems] = useState<Item[]>([]);
   const [itemsError, setItemsError] = useState("");
+  const [orders, setOrders] = useState<OrderType[]>([]);
 
   useEffect(() => {
     const loadItems = async () => {
@@ -65,7 +67,6 @@ function App() {
     void loadItems();
   }, []);
 
-
   const handleLogout = async () => {
     await publicFetch("/api/auth/logout", {
       method: "POST",
@@ -74,6 +75,28 @@ function App() {
 
     setUser(null);
     navigate("/");
+  };
+
+  const createOrder = (selectedItems: PurchaseItem[]) => {
+    const itemsSnapshot = selectedItems.map((item) => ({ ...item }));
+
+    if (itemsSnapshot.length === 0) {
+      return false;
+    }
+
+    const newOrder: OrderType = {
+      id: `order-${Date.now()}`,
+      items: itemsSnapshot,
+      totalQuantity: itemsSnapshot.reduce((sum, item) => sum + item.quantity, 0),
+      totalPrice: itemsSnapshot.reduce(
+        (sum, item) => sum + item.price * item.quantity,
+        0,
+      ),
+      createdAt: new Date().toISOString(),
+    };
+
+    setOrders((prev) => [newOrder, ...prev]);
+    return true;
   };
 
   if (authLoading) {
@@ -89,7 +112,10 @@ function App() {
       />
 
       <Routes>
-        <Route path="/" element={<Home items={items} error={itemsError} />} />
+        <Route
+          path="/"
+          element={<Home items={items} error={itemsError} />}
+        />
 
         <Route
           path="/manage"
@@ -99,7 +125,7 @@ function App() {
             ) : isAdmin ? (
               <AdminManage items={items} setItems={setItems} />
             ) : (
-              <Navigate to="/order" replace />
+              <Navigate to="/cart" replace />
             )
           }
         />
@@ -111,7 +137,7 @@ function App() {
             ) : isAdmin ? (
               <Navigate to="/manage" replace />
             ) : (
-              <Cart />
+              <Cart onCreateOrder={createOrder} />
             )
           }
         />
@@ -123,7 +149,7 @@ function App() {
             ) : isAdmin ? (
               <Navigate to="/manage" replace />
             ) : (
-              <Cart />
+              <Order orders={orders} />
             )
           }
         />
@@ -131,7 +157,10 @@ function App() {
         <Route path="/about" element={<About />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/items/:itemId" element={<ItemDetail />} />
+        <Route
+          path="/items/:itemId"
+          element={<ItemDetail />}
+        />
 
 
         <Route

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import { protectedFetch } from "../api/api";
 import type { Item, ToastPayload } from "../types";
 
@@ -9,48 +10,59 @@ interface ItemCardProps {
 }
 
 function ItemCard({ item, onToast }: ItemCardProps) {
+  const { user } = useAuth();
   const [isLoaded, setIsLoaded] = useState(false);
-  const [isBuying, setIsBuying] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
 
   const imageUrl = item.path
     ? item.path
     : item.image ||
       "https://images.unsplash.com/photo-1503602642458-232111445657?w=800&q=80";
 
-  const handleBuy = async (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleAddToCart = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
 
-    if (isBuying) return;
+    if (isAdding) return;
+    if (!user) {
+      onToast?.({ message: "Please log in to add items to cart.", type: "error" });
+      return;
+    }
+    if (user.role === "admin") {
+      onToast?.({ message: "Admin accounts cannot add items to cart.", type: "warning" });
+      return;
+    }
 
     try {
-      setIsBuying(true);
+      setIsAdding(true);
 
       const res = await protectedFetch(`/api/purchases`, {
         method: "POST",
         body: JSON.stringify({
           itemId: item.id,
-          quantity: 1
+          quantity: 1,
         }),
       });
-      
-      const data = (await res.json()) as { message?: string };
+
+      const data = (await res.json().catch(() => ({}))) as { message?: string };
 
       if (!res.ok) {
-        // Handle specific error cases
         if (res.status === 409) {
-          onToast?.({ message: "Item already purchased", type: "warning" });
+          onToast?.({ message: "Item already in cart.", type: "warning" });
         } else {
-          onToast?.({ message: data.message || "Failed to purchase", type: "error" });
+          onToast?.({
+            message: data.message || "Failed to add item to cart.",
+            type: "error",
+          });
         }
-      } else {
-        onToast?.({ message: "Item purchased successfully!", type: "success" });
-        // Optionally refresh the page or update context
+        return;
       }
+
+      onToast?.({ message: "Item added to cart.", type: "success" });
     } catch {
       onToast?.({ message: "Network error - please try again", type: "error" });
     } finally {
-      setIsBuying(false);
+      setIsAdding(false);
     }
   };
 
@@ -110,16 +122,16 @@ function ItemCard({ item, onToast }: ItemCardProps) {
           </span>
 
           <button
-            onClick={handleBuy}
-            disabled={isBuying}
+            onClick={handleAddToCart}
+            disabled={isAdding}
             className={`rounded-full border border-[#2a3442] px-3 py-1 text-xs font-semibold transition
               ${
-                isBuying
+                isAdding
                   ? "bg-[#0f141b] text-slate-500 cursor-not-allowed"
                   : "bg-[#141a22] text-slate-200 hover:border-[#6f7cff] hover:bg-[#182130]"
               }`}
           >
-            {isBuying ? "Buying..." : "Buy"}
+            {isAdding ? "Adding..." : "Add to Cart"}
           </button>
         </div>
       </div>
