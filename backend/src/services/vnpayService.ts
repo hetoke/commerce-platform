@@ -3,7 +3,6 @@ import crypto from "crypto";
 
 const getRequiredEnv = (name) => {
   const value = process.env[name];
-  console.log(value)
   if (!value) {
     const err = new Error(`Missing required environment variable: ${name}`);
     err.status = 500;
@@ -43,7 +42,8 @@ export const createVnpayPayment = ({ order }) => {
   const currCode = process.env.VNPAY_CURRENCY || "VND";
   const orderType = process.env.VNPAY_ORDER_TYPE || "other";
   const createDate = new Date();
-  const expireDate = new Date(createDate.getTime() + 15 * 60 * 1000);
+  const expireInMinutes = Number(process.env.VNPAY_EXPIRE_MINUTES || 15);
+  const expireDate = new Date(createDate.getTime() + expireInMinutes * 60 * 1000);
   const txnRef = String(order._id);
 
   const amountValue = Math.round(Number(order.totalPrice) * 100);
@@ -92,12 +92,22 @@ export const verifyVnpaySignature = (payload) => {
 };
 
 const formatDate = (date) => {
-  const year = date.getFullYear();
-  const month = `${date.getMonth() + 1}`.padStart(2, "0");
-  const day = `${date.getDate()}`.padStart(2, "0");
-  const hours = `${date.getHours()}`.padStart(2, "0");
-  const minutes = `${date.getMinutes()}`.padStart(2, "0");
-  const seconds = `${date.getSeconds()}`.padStart(2, "0");
+  const formatter = new Intl.DateTimeFormat("en-GB", {
+    timeZone: process.env.VNPAY_TIMEZONE || "Asia/Ho_Chi_Minh",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+  });
+  const parts = formatter.formatToParts(date);
+  const values = Object.fromEntries(
+    parts
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, part.value])
+  );
 
-  return `${year}${month}${day}${hours}${minutes}${seconds}`;
+  return `${values.year}${values.month}${values.day}${values.hour}${values.minute}${values.second}`;
 };
