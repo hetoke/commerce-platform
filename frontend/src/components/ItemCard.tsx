@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { protectedFetch } from "../api/api";
 import type { Item, ToastPayload } from "../types";
+import { formatVnd } from "../utils/currency";
 
 interface ItemCardProps {
   item: Item;
@@ -117,7 +118,7 @@ function ItemCard({ item, onToast }: ItemCardProps) {
         <div className="flex items-center justify-between pt-2">
           <span className="text-lg font-semibold text-slate-100">
             {typeof item.price === "number"
-              ? `$${item.price.toFixed(2)}`
+              ? formatVnd(item.price)
               : item.price}
           </span>
 

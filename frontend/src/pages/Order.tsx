@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Typewriter from "../components/Typewriter";
 import { protectedFetch } from "../api/api";
 import type { Order as OrderType } from "../types";
+import { formatVnd } from "../utils/currency";
 
 const statusLabelMap: Record<string, string> = {
   pending: "Pending",
@@ -149,7 +150,7 @@ function Order() {
 
                 <div className="flex items-center gap-3 text-sm text-slate-300">
                   <span>
-                    {order.totalQuantity} item(s) • ${order.totalPrice.toFixed(2)}
+                    {order.totalQuantity} item(s) • {formatVnd(order.totalPrice)}
                   </span>
                   {["pending", "confirmed"].includes(order.status || "pending") && (
                     <button
@@ -222,7 +223,7 @@ function Order() {
 
                     <div className="text-right text-xs text-slate-400">
                       <p>Qty: {item.quantity}</p>
-                      <p>${(item.price * item.quantity).toFixed(2)}</p>
+                      <p>{formatVnd(item.price * item.quantity)}</p>
                     </div>
                   </div>
                 ))}

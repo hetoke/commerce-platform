@@ -41,7 +41,7 @@ export async function seedInitialData() {
   const coreItems = [
     {
       name: "Midnight Leather Backpack",
-      price: 129,
+      price: 3225000,
       location: "Seattle, WA",
       description: "Waterproof 22L backpack with steel buckles and padded back.",
       detailedDescription:
@@ -51,7 +51,7 @@ export async function seedInitialData() {
     },
     {
       name: "Aurora Street Sneakers",
-      price: 98,
+      price: 2450000,
       location: "Portland, OR",
       description: "Lightweight mesh runner built for everyday city movement.",
       detailedDescription:

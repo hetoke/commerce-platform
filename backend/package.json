@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit -p src/tsconfig.json",
     "test": "cross-env NODE_ENV=test vitest run",
     "seed": "tsx src/scripts/runSeed.ts",
+    "convert_prices_vnd": "tsx src/scripts/convertPricesToVnd.ts",
     "docs": "tsx src/scripts/generateAPIDocs.ts",
     "gen_testcases": "tsx src/scripts/generateTestCases.ts",
     "clean_tokens": "tsx src/scripts/cleanRefreshTokens.ts",

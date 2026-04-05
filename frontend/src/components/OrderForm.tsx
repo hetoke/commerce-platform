@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import type { OrderCustomerInfo, PurchaseItem } from "../types";
+import { formatVnd } from "../utils/currency";
 
 interface OrderFormProps {
   items: PurchaseItem[];
@@ -158,7 +159,7 @@ function OrderForm({ items, onClose, onSubmit }: OrderFormProps) {
 
               <div className="text-right text-xs text-slate-400">
                 <p>Qty: {item.quantity}</p>
-                <p>${(item.price * item.quantity).toFixed(2)}</p>
+                <p>{formatVnd(item.price * item.quantity)}</p>
               </div>
             </div>
           ))}
@@ -167,7 +168,7 @@ function OrderForm({ items, onClose, onSubmit }: OrderFormProps) {
         <div className="mt-6 rounded-xl border border-[#1f2937] bg-[#0f141b] px-4 py-3 text-sm text-slate-300">
           <p>{totalQuantity} item(s)</p>
           <p className="mt-1 font-semibold text-slate-100">
-            Total: ${totalPrice.toFixed(2)}
+            Total: {formatVnd(totalPrice)}
           </p>
         </div>
 

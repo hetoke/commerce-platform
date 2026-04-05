@@ -2,6 +2,7 @@ import { useState } from "react";
 import Typewriter from "../components/Typewriter";
 import { protectedFetch } from "../api/api";
 import type { Item } from "../types";
+import { formatVnd } from "../utils/currency";
 
 interface AdminManageProps {
   items: Item[];
@@ -194,13 +195,13 @@ function AdminManage({ items, setItems }: AdminManageProps) {
               />
             </label>
             <label className="block">
-              <span className="text-xs font-semibold text-slate-400">Price</span>
+              <span className="text-xs font-semibold text-slate-400">Price (VND)</span>
               <input
                 name="price"
                 value={form.price}
                 onChange={handleChange}
                 className="mt-2 w-full rounded-lg border border-[#2a3442] bg-[#141a22] px-3 py-2 text-sm text-slate-100 focus:border-[#6f7cff] focus:outline-none"
-                placeholder="99"
+                placeholder="2500000"
               />
             </label>
             <label className="block">
@@ -336,7 +337,7 @@ function AdminManage({ items, setItems }: AdminManageProps) {
                     <p className="text-xs text-slate-400">
                       {item.location} •{" "}
                       {typeof item.price === "number"
-                        ? `$${item.price}`
+                        ? formatVnd(item.price)
                         : item.price}
                     </p>
                     <p className="mt-1 text-xs text-slate-500">

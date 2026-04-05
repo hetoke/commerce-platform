@@ -8,6 +8,7 @@ import Toast from "../components/Toast";
 import { useAuth } from "../context/AuthContext";
 import { publicFetch, protectedFetch } from "../api/api";
 import type { Item, Review, ToastPayload } from "../types";
+import { formatVnd } from "../utils/currency";
 
 function ItemDetail() {
   const { itemId } = useParams();
@@ -188,7 +189,7 @@ function ItemDetail() {
           </div>
 
           <div className="text-2xl font-semibold">
-            <Typewriter text={"$" + item.price} />
+            <Typewriter text={formatVnd(item.price)} />
           </div>
 
           <div className="text-sm uppercase tracking-wide text-slate-500">
@@ -221,7 +222,7 @@ function ItemDetail() {
               onClick={addToCartHandler}
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Adding..." : `Add to Cart ($${(unitPrice * quantity).toFixed(2)})`}
+              {isSubmitting ? "Adding..." : `Add to Cart (${formatVnd(unitPrice * quantity)})`}
             </button>
           </div>
 

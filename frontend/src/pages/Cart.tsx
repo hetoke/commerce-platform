@@ -4,6 +4,7 @@ import OrderForm from "../components/OrderForm";
 import Typewriter from "../components/Typewriter";
 import { protectedFetch } from "../api/api";
 import type { OrderCustomerInfo, PurchaseItem } from "../types";
+import { formatVnd } from "../utils/currency";
 
 function Cart() {
   const navigate = useNavigate();
@@ -183,7 +184,7 @@ function Cart() {
               onClick={handleCreateOrderClick}
               className="rounded-full bg-[#6f7cff] px-4 py-2 text-sm font-semibold text-black hover:opacity-90"
             >
-              Create Order ({selectedIds.length}){selectedTotal > 0 ? ` - $${selectedTotal.toFixed(2)}` : ""}
+              Create Order ({selectedIds.length}){selectedTotal > 0 ? ` - ${formatVnd(selectedTotal)}` : ""}
             </button>
           </div>
 
@@ -207,10 +208,10 @@ function Cart() {
                     {item.name}
                   </p>
                   <p className="mt-1 text-xs text-slate-400">
-                    {item.location} • ${item.price.toFixed(2)}
+                    {item.location} • {formatVnd(item.price)}
                   </p>
                   <p className="mt-1 text-xs text-slate-500">
-                    Qty: {item.quantity} • Total: ${(item.price * item.quantity).toFixed(2)}
+                    Qty: {item.quantity} • Total: {formatVnd(item.price * item.quantity)}
                   </p>
                   <p className="mt-1 text-xs text-slate-500">
                     Added: {new Date(item.purchasedAt).toLocaleDateString()}
