@@ -19,6 +19,18 @@ const statusClassMap: Record<string, string> = {
   cancelled: "border-red-500/40 bg-red-500/10 text-red-300",
 };
 
+const paymentLabelMap: Record<string, string> = {
+  unpaid: "Unpaid",
+  paid: "Paid",
+  failed: "Failed",
+};
+
+const paymentClassMap: Record<string, string> = {
+  unpaid: "border-amber-500/40 bg-amber-500/10 text-amber-300",
+  paid: "border-emerald-500/40 bg-emerald-500/10 text-emerald-300",
+  failed: "border-red-500/40 bg-red-500/10 text-red-300",
+};
+
 function Order() {
   const [orders, setOrders] = useState<OrderType[]>([]);
   const [loading, setLoading] = useState(true);
@@ -170,6 +182,20 @@ function Order() {
                     Payment Method
                   </p>
                   <p className="mt-1 text-slate-100">{order.customerInfo.paymentMethod}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Payment Status
+                  </p>
+                  <p className="mt-1">
+                    <span
+                      className={`rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-wide ${
+                        paymentClassMap[order.paymentStatus || "unpaid"] || paymentClassMap.unpaid
+                      }`}
+                    >
+                      {paymentLabelMap[order.paymentStatus || "unpaid"] || "Unpaid"}
+                    </span>
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">

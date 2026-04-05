@@ -65,7 +65,7 @@ const orderSchema = new mongoose.Schema(
       },
       paymentMethod: {
         type: String,
-        enum: ["Cash", "Momo"],
+        enum: ["Cash", "VNPay"],
         required: true,
         default: "Cash",
       },
@@ -80,11 +80,39 @@ const orderSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
+    paymentStatus: {
+      type: String,
+      enum: ["unpaid", "paid", "failed"],
+      default: "unpaid",
+      index: true,
+    },
     status: {
       type: String,
       enum: ["pending", "confirmed", "shipping", "delivered", "cancelled"],
       default: "pending",
       index: true,
+    },
+    vnpay: {
+      txnRef: {
+        type: String,
+        default: null,
+      },
+      transactionNo: {
+        type: String,
+        default: null,
+      },
+      bankCode: {
+        type: String,
+        default: null,
+      },
+      responseCode: {
+        type: String,
+        default: null,
+      },
+      payUrl: {
+        type: String,
+        default: null,
+      },
     },
   },
   { timestamps: true }

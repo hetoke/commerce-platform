@@ -48,6 +48,7 @@ export interface Order {
   totalPrice: number;
   createdAt: string;
   customerInfo: OrderCustomerInfo;
+  paymentStatus?: "unpaid" | "paid" | "failed";
   status?: "pending" | "confirmed" | "shipping" | "delivered" | "cancelled";
 }
 

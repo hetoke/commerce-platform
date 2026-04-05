@@ -1,6 +1,12 @@
 import express from "express";
 import { body, param, validationResult } from "express-validator";
-import { cancelOrder, createOrder, listOrders } from "../controllers/orderController.ts";
+import {
+  cancelOrder,
+  createOrder,
+  handleVnpayIpn,
+  handleVnpayReturn,
+  listOrders,
+} from "../controllers/orderController.ts";
 import { requireAuth } from "../middleware/auth.ts";
 import { csrfProtection } from "../middleware/csrf.ts";
 
@@ -28,6 +34,8 @@ const router = express.Router();
  *         description: Unauthorized
  */
 router.get("/", requireAuth, listOrders);
+router.get("/vnpay/return", handleVnpayReturn);
+router.get("/vnpay/ipn", handleVnpayIpn);
 
 /**
  * @swagger
@@ -50,7 +58,7 @@ router.get("/", requireAuth, listOrders);
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Order'
+ *               $ref: '#/components/schemas/CreateOrderResponse'
  *       '400':
  *         description: Bad request
  *       '401':
@@ -80,8 +88,8 @@ router.post(
       .notEmpty()
       .withMessage("Received location is required"),
     body("customerInfo.paymentMethod")
-      .isIn(["Cash", "Momo"])
-      .withMessage("Payment method must be Cash or Momo"),
+      .isIn(["Cash", "VNPay"])
+      .withMessage("Payment method must be Cash or VNPay"),
     (req, res, next) => {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {

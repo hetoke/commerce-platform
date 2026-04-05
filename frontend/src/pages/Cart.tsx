@@ -112,7 +112,10 @@ function Cart() {
         }),
       });
 
-      const data = (await response.json().catch(() => ({}))) as { message?: string };
+      const data = (await response.json().catch(() => ({}))) as {
+        message?: string;
+        payment?: { payUrl?: string };
+      };
 
       if (response.status === 401) {
         window.location.href = "/login";
@@ -125,6 +128,12 @@ function Cart() {
 
       setItems((prev) => prev.filter((item) => !selectedSet.has(item.id)));
       setSelectedIds([]);
+
+      if (customerInfo.paymentMethod === "VNPay" && data.payment?.payUrl) {
+        window.location.href = data.payment.payUrl;
+        return true;
+      }
+
       navigate("/order");
       return true;
     } catch (err) {

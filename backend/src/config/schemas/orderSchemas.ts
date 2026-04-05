@@ -19,7 +19,7 @@ const orderSchemas = {
       receivedLocation: { type: "string" },
       paymentMethod: {
         type: "string",
-        enum: ["Cash", "Momo"],
+        enum: ["Cash", "VNPay"],
       },
     },
     required: ["name", "phoneNumber", "receivedLocation", "paymentMethod"],
@@ -35,6 +35,10 @@ const orderSchemas = {
       totalQuantity: { type: "number", example: 3 },
       totalPrice: { type: "number", example: 108 },
       createdAt: { type: "string", format: "date-time" },
+      paymentStatus: {
+        type: "string",
+        enum: ["unpaid", "paid", "failed"],
+      },
       status: {
         type: "string",
         enum: ["pending", "confirmed", "shipping", "delivered", "cancelled"],
@@ -47,9 +51,26 @@ const orderSchemas = {
       "totalQuantity",
       "totalPrice",
       "createdAt",
+      "paymentStatus",
       "status",
       "customerInfo",
     ],
+  },
+  CreateOrderResponse: {
+    type: "object",
+    properties: {
+      order: { $ref: "#/components/schemas/Order" },
+      payment: {
+        type: "object",
+        nullable: true,
+        properties: {
+          requestId: { type: "string" },
+          txnRef: { type: "string" },
+          payUrl: { type: "string" },
+        },
+      },
+    },
+    required: ["order"],
   },
   CreateOrderRequest: {
     type: "object",

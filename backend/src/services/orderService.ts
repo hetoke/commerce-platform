@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import Item from "../models/Item.ts";
 import Order from "../models/Order.ts";
 import Purchase from "../models/Purchase.ts";
+import { createVnpayPayment, verifyVnpaySignature } from "./vnpayService.ts";
 
 const mapOrder = (order) => ({
   id: order._id,
@@ -23,7 +24,17 @@ const mapOrder = (order) => ({
     receivedLocation: order.customerInfo.receivedLocation,
     paymentMethod: order.customerInfo.paymentMethod,
   },
+  paymentStatus: order.paymentStatus,
   status: order.status,
+  vnpay: order.vnpay
+    ? {
+        txnRef: order.vnpay.txnRef,
+        transactionNo: order.vnpay.transactionNo,
+        bankCode: order.vnpay.bankCode,
+        responseCode: order.vnpay.responseCode,
+        payUrl: order.vnpay.payUrl,
+      }
+    : undefined,
 });
 
 export const listOrdersService = async (userId) => {
@@ -78,10 +89,25 @@ export const createOrderService = async (userId, purchaseIds, customerInfo) => {
           customerInfo,
           totalQuantity,
           totalPrice,
+          paymentStatus: customerInfo.paymentMethod === "Cash" ? "unpaid" : "unpaid",
         },
       ],
       { session }
     );
+
+    let payment = null;
+
+    if (customerInfo.paymentMethod === "VNPay") {
+      payment = createVnpayPayment({ order });
+      order.vnpay = {
+        txnRef: payment.txnRef,
+        transactionNo: null,
+        bankCode: null,
+        responseCode: null,
+        payUrl: payment.payUrl,
+      };
+      await order.save({ session });
+    }
 
     const sellCountOps = orderItems.map((item) => ({
       updateOne: {
@@ -101,7 +127,10 @@ export const createOrderService = async (userId, purchaseIds, customerInfo) => {
 
     await session.commitTransaction();
 
-    return mapOrder(order.toObject());
+    return {
+      order: mapOrder(order.toObject()),
+      payment,
+    };
   } catch (error) {
     await session.abortTransaction();
     throw error;
@@ -132,4 +161,49 @@ export const cancelOrderService = async (userId, orderId) => {
   await order.save();
 
   return mapOrder(order.toObject());
+};
+
+export const handleVnpayIpnService = async (payload) => {
+  const isValidSignature = verifyVnpaySignature(payload);
+  if (!isValidSignature) {
+    const err = new Error("Invalid VNPay signature.");
+    err.status = 400;
+    throw err;
+  }
+
+  const order = await Order.findById(payload.vnp_TxnRef);
+
+  if (!order) {
+    const err = new Error("Order not found.");
+    err.status = 404;
+    throw err;
+  }
+
+  const expectedTmnCode = process.env.VNPAY_TMN_CODE;
+  if (expectedTmnCode && payload.vnp_TmnCode !== expectedTmnCode) {
+    const err = new Error("Invalid terminal code.");
+    err.status = 400;
+    throw err;
+  }
+
+  if (Number(payload.vnp_Amount) !== Math.round(order.totalPrice * 100)) {
+    const err = new Error("Amount mismatch.");
+    err.status = 400;
+    throw err;
+  }
+
+  order.vnpay = {
+    txnRef: payload.vnp_TxnRef,
+    transactionNo: payload.vnp_TransactionNo || null,
+    bankCode: payload.vnp_BankCode || null,
+    responseCode: payload.vnp_ResponseCode || null,
+    payUrl: order.vnpay?.payUrl || null,
+  };
+  order.paymentStatus =
+    payload.vnp_ResponseCode === "00" && payload.vnp_TransactionStatus === "00"
+      ? "paid"
+      : "failed";
+  await order.save();
+
+  return order;
 };

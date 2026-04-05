@@ -124,7 +124,7 @@ function OrderForm({ items, onClose, onSubmit }: OrderFormProps) {
                 className="mt-2 w-full rounded-lg border border-[#2a3442] bg-[#141a22] px-3 py-2 text-sm text-slate-100 focus:border-[#6f7cff] focus:outline-none"
               >
                 <option>Cash</option>
-                <option>Momo</option>
+                <option>VNPay</option>
               </select>
             </div>
 

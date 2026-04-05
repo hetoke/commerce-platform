@@ -5,7 +5,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { publicFetch } from "../api/api";
+import { protectedFetch } from "../api/api";
 import type { AuthContextValue, User } from "../types";
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -21,9 +21,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     const loadUser = async () => {
       try {
-        const res = await publicFetch("/api/auth/me", {
-          credentials: "include",
-        });
+        const res = await protectedFetch("/api/auth/me");
 
         if (!res.ok) {
           throw new Error("Failed to load current user.");

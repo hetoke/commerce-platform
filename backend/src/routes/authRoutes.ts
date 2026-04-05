@@ -14,7 +14,7 @@ import { body, validationResult } from "express-validator";
 
 const router = express.Router();
 
-router.get("/csrf-token", requireAuth, (req, res) => {
+router.get("/csrf-token", (req, res) => {
   try {
     const token = generateCsrfToken(req, res);
     res.json({ csrfToken: token });
