@@ -10,6 +10,7 @@ import uploadRoutes from "./routes/uploadRoutes.ts";
 import accountRoutes from "./routes/accountRoutes.ts";
 import reviewRoutes from "./routes/reviewRoutes.ts";
 import purchaseRoutes from "./routes/purchaseRoutes.ts";
+import orderRoutes from "./routes/orderRoutes.ts";
 import healthRouter from "./routes/health.ts";
 
 const app = express();
@@ -43,6 +44,7 @@ app.use("/api/items", reviewRoutes);
 app.use("/api/uploads", uploadRoutes);
 app.use("/api/account", accountRoutes);
 app.use("/api/purchases", purchaseRoutes);
+app.use("/api/orders", orderRoutes);
 app.use("/health", healthRouter);
 
 export default app;

@@ -14,13 +14,13 @@ export const listCustomerItemsService = async (userId) => {
       id: p._id,
       itemId: p.item._id,
       name: p.item.name,
-      price: p.item.price,
+      price: p.priceAtPurchase,
       location: p.item.location,
       description: p.item.description,
       path: p.item.imagePath,
       purchasedAt: p.createdAt,
-      quantity: p.quantity, // Add this line
-      priceAtPurchase: p.priceAtPurchase, // Might be useful too
+      quantity: p.quantity,
+      priceAtPurchase: p.priceAtPurchase,
     }));
 };
 
@@ -36,25 +36,18 @@ export const createPurchaseService = async (userId, itemId, quantity = 1) => {
 
   const session = await mongoose.startSession();
   session.startTransaction();
-  
+
   try {
-    // Always create a new purchase record (don't merge)
     const purchase = await Purchase.create([{
       user: userId,
       item: item._id,
       quantity: quantity,
       priceAtPurchase: item.price,
     }], { session });
-    
-    // Update item sell count
-    await Item.updateOne(
-      { _id: itemId },
-      { $inc: { sellCount: quantity } }
-    ).session(session);
 
     await session.commitTransaction();
-    return purchase[0]; // create() returns an array
-    
+    return purchase[0];
+
   } catch (error) {
     await session.abortTransaction();
     throw error;
@@ -66,7 +59,7 @@ export const createPurchaseService = async (userId, itemId, quantity = 1) => {
 export const cancelPurchaseService = async (userId, purchaseId) => {
   const session = await mongoose.startSession();
   session.startTransaction();
-  
+
   try {
     const purchase = await Purchase.findOneAndDelete({
       _id: purchaseId,
@@ -79,15 +72,9 @@ export const cancelPurchaseService = async (userId, purchaseId) => {
       throw err;
     }
 
-    // Update item sell count
-    await Item.updateOne(
-      { _id: purchase.item, sellCount: { $gt: 0 } },
-      { $inc: { sellCount: -purchase.quantity } }
-    ).session(session);
-
     await session.commitTransaction();
     return purchase;
-    
+
   } catch (error) {
     await session.abortTransaction();
     throw error;

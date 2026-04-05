@@ -26,6 +26,7 @@ export interface Item {
 
 export interface PurchaseItem {
   id: string;
+  itemId?: string;
   name: string;
   location: string;
   price: number;
@@ -47,6 +48,7 @@ export interface Order {
   totalPrice: number;
   createdAt: string;
   customerInfo: OrderCustomerInfo;
+  status?: "pending" | "confirmed" | "shipping" | "delivered" | "cancelled";
 }
 
 export interface Review {

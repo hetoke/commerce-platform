@@ -4,6 +4,7 @@ import { fileURLToPath } from "url";
 import accountSchemas from "./schemas/accountSchemas.ts";
 import authSchemas from "./schemas/authSchemas.ts";
 import itemSchemas from "./schemas/itemSchemas.ts";
+import orderSchemas from "./schemas/orderSchemas.ts";
 import reviewSchemas from "./schemas/reviewSchemas.ts";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -13,6 +14,7 @@ const schemas = {
   ...accountSchemas,
   ...authSchemas,
   ...itemSchemas,
+  ...orderSchemas,
   ...reviewSchemas
 };
 

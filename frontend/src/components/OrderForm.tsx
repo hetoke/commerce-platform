@@ -5,20 +5,18 @@ import type { OrderCustomerInfo, PurchaseItem } from "../types";
 interface OrderFormProps {
   items: PurchaseItem[];
   onClose: () => void;
-  onSubmit: (
-    selectedItems: PurchaseItem[],
-    customerInfo: OrderCustomerInfo,
-  ) => boolean;
+  onSubmit: (customerInfo: OrderCustomerInfo) => Promise<boolean>;
 }
 
 function OrderForm({ items, onClose, onSubmit }: OrderFormProps) {
   const { user } = useAuth();
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [customerInfo, setCustomerInfo] = useState<OrderCustomerInfo>({
     name: user?.username || "",
     phoneNumber: "",
     receivedLocation: "",
-    paymentMethod: "Cash on Delivery",
+    paymentMethod: "Cash",
   });
 
   const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
@@ -27,7 +25,7 @@ function OrderForm({ items, onClose, onSubmit }: OrderFormProps) {
     0,
   );
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (
       !customerInfo.name.trim() ||
       !customerInfo.phoneNumber.trim() ||
@@ -38,18 +36,24 @@ function OrderForm({ items, onClose, onSubmit }: OrderFormProps) {
       return;
     }
 
-    const created = onSubmit(items, {
+    setIsSubmitting(true);
+    setError("");
+
+    const created = await onSubmit({
       name: customerInfo.name.trim(),
       phoneNumber: customerInfo.phoneNumber.trim(),
       receivedLocation: customerInfo.receivedLocation.trim(),
       paymentMethod: customerInfo.paymentMethod.trim(),
     });
+
     if (!created) {
       setError("Unable to create order.");
+      setIsSubmitting(false);
       return;
     }
 
     onClose();
+    setIsSubmitting(false);
   };
 
   return (
@@ -119,9 +123,8 @@ function OrderForm({ items, onClose, onSubmit }: OrderFormProps) {
                 }
                 className="mt-2 w-full rounded-lg border border-[#2a3442] bg-[#141a22] px-3 py-2 text-sm text-slate-100 focus:border-[#6f7cff] focus:outline-none"
               >
-                <option>Cash on Delivery</option>
-                <option>Bank Transfer</option>
-                <option>Credit Card</option>
+                <option>Cash</option>
+                <option>Momo</option>
               </select>
             </div>
 
@@ -181,9 +184,10 @@ function OrderForm({ items, onClose, onSubmit }: OrderFormProps) {
           <button
             type="button"
             onClick={handleSubmit}
+            disabled={isSubmitting}
             className="rounded-full bg-[#6f7cff] px-4 py-2 text-sm font-semibold text-black hover:opacity-90"
           >
-            Confirm Order
+            {isSubmitting ? "Creating..." : "Confirm Order"}
           </button>
         </div>
       </div>

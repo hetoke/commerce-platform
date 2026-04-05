@@ -14,12 +14,7 @@ import ItemDetail from "./pages/ItemDetail";
 import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import { publicFetch } from "./api/api";
-import type {
-  Item,
-  Order as OrderType,
-  OrderCustomerInfo,
-  PurchaseItem,
-} from "./types";
+import type { Item } from "./types";
 
 function App() {
   const navigate = useNavigate();
@@ -35,7 +30,6 @@ function App() {
 
   const [items, setItems] = useState<Item[]>([]);
   const [itemsError, setItemsError] = useState("");
-  const [orders, setOrders] = useState<OrderType[]>([]);
 
   useEffect(() => {
     const loadItems = async () => {
@@ -82,32 +76,6 @@ function App() {
     navigate("/");
   };
 
-  const createOrder = (
-    selectedItems: PurchaseItem[],
-    customerInfo: OrderCustomerInfo,
-  ) => {
-    const itemsSnapshot = selectedItems.map((item) => ({ ...item }));
-
-    if (itemsSnapshot.length === 0) {
-      return false;
-    }
-
-    const newOrder: OrderType = {
-      id: `order-${Date.now()}`,
-      items: itemsSnapshot,
-      totalQuantity: itemsSnapshot.reduce((sum, item) => sum + item.quantity, 0),
-      totalPrice: itemsSnapshot.reduce(
-        (sum, item) => sum + item.price * item.quantity,
-        0,
-      ),
-      createdAt: new Date().toISOString(),
-      customerInfo,
-    };
-
-    setOrders((prev) => [newOrder, ...prev]);
-    return true;
-  };
-
   if (authLoading) {
     return <LoadingScreen />;
   }
@@ -146,7 +114,7 @@ function App() {
             ) : isAdmin ? (
               <Navigate to="/manage" replace />
             ) : (
-              <Cart onCreateOrder={createOrder} />
+              <Cart />
             )
           }
         />
@@ -158,7 +126,7 @@ function App() {
             ) : isAdmin ? (
               <Navigate to="/manage" replace />
             ) : (
-              <Order orders={orders} />
+              <Order />
             )
           }
         />

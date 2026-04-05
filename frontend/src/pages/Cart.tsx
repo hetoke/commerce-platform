@@ -5,14 +5,7 @@ import Typewriter from "../components/Typewriter";
 import { protectedFetch } from "../api/api";
 import type { OrderCustomerInfo, PurchaseItem } from "../types";
 
-interface CartProps {
-  onCreateOrder: (
-    selectedItems: PurchaseItem[],
-    customerInfo: OrderCustomerInfo,
-  ) => boolean;
-}
-
-function Cart({ onCreateOrder }: CartProps) {
+function Cart() {
   const navigate = useNavigate();
   const [items, setItems] = useState<PurchaseItem[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -107,18 +100,37 @@ function Cart({ onCreateOrder }: CartProps) {
     setIsOrderFormOpen(true);
   };
 
-  const handleOrderSubmit = (
-    itemsToOrder: PurchaseItem[],
-    customerInfo: OrderCustomerInfo,
-  ) => {
-    const created = onCreateOrder(itemsToOrder, customerInfo);
-    if (!created) {
-      setError("Unable to create order.");
+  const handleOrderSubmit = async (customerInfo: OrderCustomerInfo) => {
+    try {
+      setError("");
+
+      const response = await protectedFetch("/api/orders", {
+        method: "POST",
+        body: JSON.stringify({
+          purchaseIds: selectedItems.map((item) => item.id),
+          customerInfo,
+        }),
+      });
+
+      const data = (await response.json().catch(() => ({}))) as { message?: string };
+
+      if (response.status === 401) {
+        window.location.href = "/login";
+        return false;
+      }
+
+      if (!response.ok) {
+        throw new Error(data.message || "Unable to create order.");
+      }
+
+      setItems((prev) => prev.filter((item) => !selectedSet.has(item.id)));
+      setSelectedIds([]);
+      navigate("/order");
+      return true;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to create order.");
       return false;
     }
-
-    navigate("/order");
-    return true;
   };
 
   return (
