@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import Typewriter from "../components/Typewriter";
 import { protectedFetch } from "../api/api";
 import type { Order as OrderType } from "../types";
@@ -33,10 +34,13 @@ const paymentClassMap: Record<string, string> = {
 };
 
 function Order() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [orders, setOrders] = useState<OrderType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [cancelingId, setCancelingId] = useState<string | null>(null);
+  const [paymentMessage, setPaymentMessage] = useState("");
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -62,7 +66,31 @@ function Order() {
     };
 
     void fetchOrders();
-  }, []);
+  }, [location.search]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const responseCode = params.get("vnp_ResponseCode");
+    const transactionStatus = params.get("vnp_TransactionStatus");
+
+    if (!responseCode) {
+      setPaymentMessage("");
+      return;
+    }
+
+    const isPaid = responseCode === "00" && transactionStatus === "00";
+    setPaymentMessage(
+      isPaid
+        ? "Payment successful. Your order status has been refreshed."
+        : "Payment was not completed successfully."
+    );
+
+    const cleanupTimer = window.setTimeout(() => {
+      navigate("/order", { replace: true });
+    }, 4000);
+
+    return () => window.clearTimeout(cleanupTimer);
+  }, [location.search, navigate]);
 
   const handleCancelOrder = async (orderId: string) => {
     try {
@@ -113,6 +141,10 @@ function Order() {
           delay={250}
         />
       </p>
+
+      {paymentMessage && (
+        <p className="mt-6 text-sm text-emerald-400">{paymentMessage}</p>
+      )}
 
       {error && <p className="mt-6 text-sm text-red-400">{error}</p>}
 

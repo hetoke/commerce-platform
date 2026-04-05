@@ -53,6 +53,13 @@ export const handleVnpayReturn = async (req, res) => {
   const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
   const params = new URLSearchParams();
 
+  try {
+    await handleVnpayIpnService(req.query);
+  } catch {
+    // IPN remains the source of truth. The return handler only tries to
+    // persist the callback early so the redirected order page is up to date.
+  }
+
   for (const [key, value] of Object.entries(req.query)) {
     if (typeof value === "string") {
       params.set(key, value);
