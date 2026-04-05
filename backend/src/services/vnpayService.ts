@@ -1,8 +1,9 @@
 // @ts-nocheck
 import crypto from "crypto";
+import qs from "qs";
 
 const getRequiredEnv = (name) => {
-  const value = process.env[name];
+  const value = process.env[name]?.trim();
   if (!value) {
     const err = new Error(`Missing required environment variable: ${name}`);
     err.status = 500;
@@ -23,17 +24,21 @@ const buildSortedParams = (params) => {
   return normalized;
 };
 
-const encodeVnpValue = (value) =>
-  encodeURIComponent(value)
-    .replace(/%20/g, "+")
-    .replace(/[!'()~]/g, (char) =>
-      `%${char.charCodeAt(0).toString(16).toUpperCase()}`
-    );
+const sortObject = (params) => {
+  const sorted = {};
+  const keys = Object.keys(params)
+    .map((key) => encodeURIComponent(key))
+    .sort();
+
+  for (const key of keys) {
+    sorted[key] = encodeURIComponent(String(params[key])).replace(/%20/g, "+");
+  }
+
+  return sorted;
+};
 
 const buildQueryString = (params) =>
-  Object.entries(buildSortedParams(params))
-    .map(([key, value]) => `${encodeVnpValue(key)}=${encodeVnpValue(value)}`)
-    .join("&");
+  qs.stringify(sortObject(buildSortedParams(params)), { encode: false });
 
 const signParams = (params) => {
   const secret = getRequiredEnv("VNPAY_HASH_SECRET");
@@ -79,10 +84,7 @@ export const createVnpayPayment = ({ order }) => {
   };
 
   const vnp_SecureHash = signParams(params);
-  const payUrl = `${paymentUrl}?${buildQueryString({
-    ...params,
-    vnp_SecureHash: vnp_SecureHash,
-  })}`;
+  const payUrl = `${paymentUrl}?${buildQueryString(params)}&vnp_SecureHash=${vnp_SecureHash}`;
 
   return {
     txnRef,
