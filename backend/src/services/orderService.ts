@@ -229,6 +229,10 @@ export const handleVnpayIpnService = async (payload) => {
     order.sellCountApplied = true;
   }
 
+  if (isPaid && order.status === "pending") {
+    order.status = "confirmed";
+  }
+
   await order.save();
 
   return order;
