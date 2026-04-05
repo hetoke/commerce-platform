@@ -23,8 +23,17 @@ const buildSortedParams = (params) => {
   return normalized;
 };
 
+const encodeVnpValue = (value) =>
+  encodeURIComponent(value)
+    .replace(/%20/g, "+")
+    .replace(/[!'()~]/g, (char) =>
+      `%${char.charCodeAt(0).toString(16).toUpperCase()}`
+    );
+
 const buildQueryString = (params) =>
-  new URLSearchParams(buildSortedParams(params)).toString();
+  Object.entries(buildSortedParams(params))
+    .map(([key, value]) => `${encodeVnpValue(key)}=${encodeVnpValue(value)}`)
+    .join("&");
 
 const signParams = (params) => {
   const secret = getRequiredEnv("VNPAY_HASH_SECRET");
