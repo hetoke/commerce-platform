@@ -92,6 +92,11 @@ const orderSchema = new mongoose.Schema(
       default: "pending",
       index: true,
     },
+    sellCountApplied: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
     vnpay: {
       txnRef: {
         type: String,

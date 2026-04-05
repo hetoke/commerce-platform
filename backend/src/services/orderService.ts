@@ -37,6 +37,32 @@ const mapOrder = (order) => ({
     : undefined,
 });
 
+const incrementSellCountForOrder = async (orderItems) => {
+  const sellCountOps = orderItems.map((item) => ({
+    updateOne: {
+      filter: { _id: item.item },
+      update: { $inc: { sellCount: item.quantity } },
+    },
+  }));
+
+  if (sellCountOps.length > 0) {
+    await Item.bulkWrite(sellCountOps);
+  }
+};
+
+const decrementSellCountForOrder = async (orderItems) => {
+  const sellCountOps = orderItems.map((item) => ({
+    updateOne: {
+      filter: { _id: item.item },
+      update: { $inc: { sellCount: -item.quantity } },
+    },
+  }));
+
+  if (sellCountOps.length > 0) {
+    await Item.bulkWrite(sellCountOps);
+  }
+};
+
 export const listOrdersService = async (userId) => {
   const orders = await Order.find({ user: userId }).sort({ createdAt: -1 }).lean();
   return orders.map(mapOrder);
@@ -109,17 +135,6 @@ export const createOrderService = async (userId, purchaseIds, customerInfo) => {
       await order.save({ session });
     }
 
-    const sellCountOps = orderItems.map((item) => ({
-      updateOne: {
-        filter: { _id: item.item },
-        update: { $inc: { sellCount: item.quantity } },
-      },
-    }));
-
-    if (sellCountOps.length > 0) {
-      await Item.bulkWrite(sellCountOps, { session });
-    }
-
     await Purchase.deleteMany({
       _id: { $in: purchaseIds },
       user: userId,
@@ -157,6 +172,11 @@ export const cancelOrderService = async (userId, orderId) => {
     throw err;
   }
 
+  if (order.sellCountApplied) {
+    await decrementSellCountForOrder(order.items);
+    order.sellCountApplied = false;
+  }
+
   order.status = "cancelled";
   await order.save();
 
@@ -192,6 +212,9 @@ export const handleVnpayIpnService = async (payload) => {
     throw err;
   }
 
+  const isPaid =
+    payload.vnp_ResponseCode === "00" && payload.vnp_TransactionStatus === "00";
+
   order.vnpay = {
     txnRef: payload.vnp_TxnRef,
     transactionNo: payload.vnp_TransactionNo || null,
@@ -199,10 +222,13 @@ export const handleVnpayIpnService = async (payload) => {
     responseCode: payload.vnp_ResponseCode || null,
     payUrl: order.vnpay?.payUrl || null,
   };
-  order.paymentStatus =
-    payload.vnp_ResponseCode === "00" && payload.vnp_TransactionStatus === "00"
-      ? "paid"
-      : "failed";
+  order.paymentStatus = isPaid ? "paid" : "failed";
+
+  if (isPaid && !order.sellCountApplied) {
+    await incrementSellCountForOrder(order.items);
+    order.sellCountApplied = true;
+  }
+
   await order.save();
 
   return order;
